@@ -1,0 +1,193 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Why Linkerd doesn't use Envoy | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Why Linkerd doesn&rsquo;t use Envoy
+In this article I&rsquo;m going to describe why Linkerd isn&rsquo;t built on
+Envoy.
+This is a bit of a weird article to write. After all, there are a million
+projects that Linkerd doesn&rsquo;t use, and none of those decisions deserve a blog
+post. But the fact that Linkerd doesn&rsquo;t use Envoy specifically has become a
+common enough topic of discussion that it probably deserves a good explanation."><meta property="og:url" content="https://travisbeckham.github.io/2020/12/03/why-linkerd-doesnt-use-envoy/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Why Linkerd doesn't use Envoy"><meta property="og:description" content="Why Linkerd doesn’t use Envoy In this article I’m going to describe why Linkerd isn’t built on Envoy.
+This is a bit of a weird article to write. After all, there are a million projects that Linkerd doesn’t use, and none of those decisions deserve a blog post. But the fact that Linkerd doesn’t use Envoy specifically has become a common enough topic of discussion that it probably deserves a good explanation."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2020-12-03T00:00:00+00:00"><meta property="article:modified_time" content="2020-12-03T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2020/12/03/why-linkerd-doesnt-use-envoy/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2020/12/03/why-linkerd-doesnt-use-envoy/cover.jpg"><meta name=twitter:title content="Why Linkerd doesn't use Envoy"><meta name=twitter:description content="Why Linkerd doesn’t use Envoy In this article I’m going to describe why Linkerd isn’t built on Envoy.
+This is a bit of a weird article to write. After all, there are a million projects that Linkerd doesn’t use, and none of those decisions deserve a blog post. But the fact that Linkerd doesn’t use Envoy specifically has become a common enough topic of discussion that it probably deserves a good explanation."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2020/12/03/why-linkerd-doesnt-use-envoy/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2020-12-03T00:00:00Z","dateModified":"2020-12-03T00:00:00Z","headline":"Why Linkerd doesn't use Envoy","image":"https://travisbeckham.github.io/2020/12/03/why-linkerd-doesnt-use-envoy/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Why Linkerd doesn't use Envoy</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Dec 3, 2020 • 11 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><h2 id=why-linkerd-doesnt-use-envoy>Why Linkerd doesn&rsquo;t use Envoy</h2><p>In this article I&rsquo;m going to describe why Linkerd isn&rsquo;t built on
+<a href=https://www.envoyproxy.io target=_blank rel=noopener>Envoy</a>.</p><p>This is a bit of a weird article to write. After all, there are a million
+projects that Linkerd <em>doesn&rsquo;t</em> use, and none of those decisions deserve a blog
+post. But the fact that Linkerd doesn&rsquo;t use Envoy specifically has become a
+common enough topic of discussion that it probably deserves a good explanation.</p><p>Let me also state upfront that this is not an &ldquo;Envoy sucks&rdquo; blog post. Envoy is
+a great project, is clearly a popular choice for many, and we have nothing but
+respect for the fine folks who work on it. We recommend Envoy to Linkerd users
+every day in the form of ingress controllers like
+<a href=https://github.com/datawire/ambassador target=_blank rel=noopener>Ambassador</a>, and there are production
+systems around the world today where you can find Envoy and Linkerd working
+side by side.</p><p>But we chose not to build Linkerd on top of Envoy. Instead, we built a
+dedicated &ldquo;micro-proxy&rdquo;, called simply
+<a href=https://github.com/linkerd/linkerd2-proxy target=_blank rel=noopener>Linkerd2-proxy</a>, which is optimized
+for the service mesh sidecar use case. In the increasingly crowded field of
+similar-sounding service mesh projects, Linkerd is unique in this regard. But
+why did we go this route?</p><p>The full answer to this question is nuanced and technical at heart—exactly the
+kind of content that tends to get swept away in the faddish, blog-post-driven
+world of cloud native adoption.<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup> So in this article I&rsquo;m going to do my best
+to lay out the reasons why in a frank and engineering-focused way. After all,
+Linkerd is built <em>by</em> engineers and <em>for</em> engineers, and if there&rsquo;s one thing
+I&rsquo;m proud of, it&rsquo;s that we&rsquo;ve made decisions on the basis of engineering
+tradeoffs rather than marketing pressure.</p><p>In short: <strong>Linkerd doesn&rsquo;t use Envoy because using Envoy wouldn&rsquo;t allow us to
+build the lightest, simplest, and most secure Kubernetes service mesh in the
+world.</strong></p><p>Being the lightest, simplest, most secure Kubernetes service mesh is Linkerd&rsquo;s
+promise to our users, and that&rsquo;s also what makes Linkerd unique among service
+meshes: it <em>is</em> dramatically simpler, lighter, and more secure. And the
+reason we&rsquo;ve been able to accomplish that is—you guessed it—because we build on
+Linkerd2-proxy instead of Envoy. Not because Envoy is bad, but because
+Linkerd2-proxy is <em>better</em>—at least, for the very specific and limited use case
+of being a Kubernetes sidecar proxy.</p><p>Let&rsquo;s take a look at why.</p><h3 id=what-is-linkerd2-proxy>What is Linkerd2-proxy?</h3><p>Before we get into the details, it&rsquo;s helpful to understand a bit more about
+Linkerd2-proxy.</p><p>Linkerd2-proxy is a &ldquo;micro-proxy&rdquo; designed specifically for the service mesh
+sidecar use case. Linkerd2-proxy is built on, and has driven many of the
+requirements for, the world&rsquo;s most modern network programming environment circa
+2020: the Rust asynchronous network ecosystem, including libraries like
+<a href=https://tokio.rs/ target=_blank rel=noopener>Tokio</a>, <a href=https://github.com/tower-rs target=_blank rel=noopener>Tower</a>, and
+<a href=https://github.com/hyperium/hyper target=_blank rel=noopener>Hyper</a>. In terms of sheer technical
+advancement, Linkerd2-proxy is one of the most advanced pieces of technology in
+the entire CNCF landscape.</p><p>Like Envoy, Linkerd2-proxy is a 100% open source Apache v2 CNCF project that
+features regular third-party audits, an active community, and high-scale
+production usage in mission-critical systems around the world. Unlike Envoy,
+Linkerd2-proxy is designed for only one use case: proxying requests to and from
+a single Kubernetes pod while receiving configuration from the Linkerd control
+plane. And unlike Envoy, Linkerd2-proxy is designed to be an <em>implementation
+detail</em>: it&rsquo;s not user-facing, it&rsquo;s not usable as a generic building block, and
+it has a boring name. This means Linkerd2-proxy tends to go unnoticed, though
+we&rsquo;ve tried to shed a little more light on it recently with articles looking
+<a href=https://linkerd.io/2020/07/23/under-the-hood-of-linkerds-state-of-the-art-rust-proxy-linkerd2-proxy/ target=_blank rel=noopener>under the
+hood</a>
+and at <a href=https://linkerd.io/2020/09/02/the-road-ahead-for-linkerd2-proxy/ target=_blank rel=noopener>the
+roadmap</a>).</p><p>So why &ldquo;micro-proxy&rdquo;? Loathe as we are to introduce another term into the
+lexicon,<sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup> the word &ldquo;proxy&rdquo; doesn&rsquo;t do Linkerd2-proxy justice. A proxy is
+something like Envoy, NGINX, Apache, or httproxy. These projects can do a huge
+variety of things (&ldquo;send HTTP requests with a path that matches this wildcard
+to this backend while rewriting these headers, compressing any Javascript
+files, and rotating the access logs&rdquo;) and they have a configuration and tuning
+surface area to match. Using a proxy in production requires significant
+operational investment: if you&rsquo;re running Apache, you&rsquo;re going to end up with
+an Apache expert somewhere in the house.</p><p>But Linkerd2-proxy is different. It&rsquo;s designed to be an implementation detail
+that doesn&rsquo;t require specialized knowledge or dedicated operational investment
+(though Linkerd as a whole, of course, does require it). There&rsquo;s no user-facing
+YAML; instead, Linkerd2-proxy is configured automatically through a handful of
+environment variables set at injection time and by the Linkerd control plane at
+runtime. We&rsquo;ve kept Linkerd2-proxy&rsquo;s tuning surface area to a bare minimum so
+that end users rarely have to touch it directly. In short: Linkerd2-proxy is
+designed to stay behind the scenes, to be an implementation detail, and to just
+work.</p><p><em>Tl;dr</em>: Linkerd2-proxy is dramatically different from proxies like Envoy,
+NGINX, and Apache, and the word &ldquo;proxy&rdquo; doesn&rsquo;t do it justice.</p><h3 id=complexity>Complexity</h3><p>So why did we build Linkerd2-proxy rather than using Envoy? One big reason is
+complexity.</p><p>Envoy is a flexible and general-purpose proxy, and that&rsquo;s much of the reason for
+its popularity. You can use Envoy as an ingress, as an egress, as a service mesh
+sidecar, and in many other ways. But with this flexibility comes complexity.</p><p>As a point of comparison, as of November 2020, the Envoy repo weighs in at <strong>172
+KLOC</strong> of C++ code, with a &ldquo;complexity score&rdquo; (measured in terms of branches and
+loops) of <strong>19k</strong>.<sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup> By contrast, Linkerd2-proxy comes in at <strong>30 KLOC</strong> and
+has a complexity score of <strong>1.5k</strong>. In other words: the Linkerd2-proxy codebase
+is 5 times smaller than Envoy and, by this measure, its complexity is ten times
+less than Envoy&rsquo;s.<sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup></p><p>This isn&rsquo;t an apples-to-apples calculation, of course. It doesn&rsquo;t capture the
+libraries or dependencies outside the repos; the complexity score numbers are
+not strictly portable across languages; and so on. But it should give you a
+general sense of the relative size of these projects: internally, Linkerd2-proxy
+is <em>orders of magnitude smaller and simpler than Envoy</em>.</p><p>Is this complexity a moral failing in Envoy? No. Again, Envoy has a lot of
+complex code because it can do a lot of complex things. However, this complexity
+is a very difficult foundation upon which to build a project that is focused on
+simplicity, especially operational simplicity.<sup id=fnref:5><a href=#fn:5 class=footnote-ref role=doc-noteref>5</a></sup></p><p><em>Tl;dr</em>: Envoy is a Swiss Army knife. Linkerd2-proxy is a needle.</p><h3 id=resource-consumption>Resource consumption</h3><p>One thing is clear with any sidecar-based service mesh: you&rsquo;re going to have a
+lot of proxies.</p><p>That means that the aggregate CPU and memory consumed by the data plane are a
+critical component of the <em>cost</em> of running a service mesh, especially as the
+application scales.</p><p>Using Linkerd2-proxy allows us to keep tight reins on Linkerd&rsquo;s resource
+consumption. In our internal benchmarks of Linkerd and Istio using
+<a href=https://github.com/kinvolk/service-mesh-benchmark target=_blank rel=noopener>Kinvolk&rsquo;s open source benchmark
+harness</a>, for example, at
+4,000 RPS (requests per second) of ingress traffic, we see Linkerd2-proxy
+instances consistently between <strong>14mb</strong> and <strong>15mb</strong> of memory, while Istio&rsquo;s
+Envoy ranged between <strong>135mb</strong> and <strong>175mb</strong>—ten times the size. Similarly,
+Linkerd2-proxy&rsquo;s CPU usage for the test run was consistently at <strong>15ms</strong> (CPU
+milliseconds) per instance, while Istio&rsquo;s Envoy ranged from <strong>22ms</strong> to
+<strong>156ms</strong>—from 50% more to 10x more.</p><p>Again, this is not an entirely fair comparison. These are internal benchmarks
+against one particular application and one particular configuration, and
+undoubtedly some of Istio&rsquo;s design decisions played a big role here. But Istio
+is built by world-class engineers, and the point is: if Linkerd were built on
+Envoy, we&rsquo;d have to make many of those same design decisions ourselves.</p><p><em>Tl;dr</em>: In practice, in the service mesh context, Linkerd2-proxy uses a
+fraction of the system resources that Envoy does.</p><h3 id=security>Security</h3><p>The last point is perhaps the most philosophical: security. The security of the
+data plane is a <em>huge</em> concern for any service mesh. Linkerd, for example, is
+used in production around the world to handle extraordinarily sensitive data,
+from health information to personally-identifiable details to financial
+transactions.</p><p>We have no reason to believe that Envoy is insecure. But to the extent that it
+<em>is</em> secure (especially at 170+ KLOC of C++ code), it&rsquo;s secure via the manual
+and expensive process of getting a lot of very smart engineers using it,
+examining it, filing CVEs, fixing bugs, and repeating. This is the &ldquo;traditional
+process&rdquo; for software security, and it works—at least, in the fullness of time.
+It is also expensive, difficult, and failure prone. C++ code is
+<a href=https://www.vice.com/en/article/a3mgxb/the-internet-has-a-huge-cc-problem-and-developers-dont-want-to-deal-with-it target=_blank rel=noopener>notoriously</a>
+<a href=https://en.wikipedia.org/wiki/Buffer_overflow#Choice_of_programming_language target=_blank rel=noopener>difficult</a>
+to
+<a href=https://alexgaynor.net/2020/may/27/science-on-memory-unsafety-and-security/ target=_blank rel=noopener>secure</a>,
+even for the most experienced programmers.</p><p>More fundamentally, this is not the security model we want to rely on for
+Linkerd and not what we believe is the future of systems programming security.
+Our choice of Rust for Linkerd2-proxy was intentional: Rust&rsquo;s memory safety
+allows us to confidently write secure code in Linkerd2-proxy in a way that
+minimizes our reliance on humans catching the problems. Which is not to say that
+Linkerd2-proxy cannot have security vulnerabilities, of course! Rather, that it
+will have fewer; that we will need to rely less on our own humble talents to
+avoid them; and that we will less often need to impose on our users to upgrade
+their systems with critical updates in order to remain secure.</p><p><em>Tl;dr</em>: Linkerd2-proxy&rsquo;s Rust foundations give us confidence in the security of
+Linkerd&rsquo;s data plane.</p><h2 id=could-linkerd-use-envoy>Could Linkerd use Envoy?</h2><p>Simplicity, resource consumption, and security were the driving factors in our
+decision to not adopt Envoy. However, we do believe that the choice of proxy is
+ultimately an implementation detail. While we&rsquo;ve invested tremendous amounts in
+Linkerd2-proxy, we do periodically re-evaluate Envoy. I can say with
+clarity that if the tradeoff for our users ever tips in Envoy&rsquo;s favor, we will
+adopt it without qualms.</p><p>Our advice to would-be service mesh adopters, though, is simple: ignore the
+noise. Your job is not to &ldquo;use a service mesh&rdquo; or &ldquo;adopt Envoy&rdquo; or even &ldquo;use
+only CNCF technology&rdquo;. Your job is to clearly understand the problem you&rsquo;re
+trying to solve and then to pick the solution that solves it best. And whatever
+you pick, you&rsquo;re going to have to live with it—so make sure you&rsquo;re making a
+decision based on concrete requirements and well-understood engineering
+tradeoffs, not on fashion or trends.</p><h2 id=faq>FAQ</h2><h3 id=so-why-_do_-so-many-service-meshes-use-envoy>So why <em>do</em> so many service meshes use Envoy?</h3><p>Because writing your own modern, scalable, high-performance network
+(micro-)proxy is <em>hard</em>. It&rsquo;s <em>really hard</em>. Building out Linkerd2-proxy and
+the Rust networking libraries that make it possible has been a tremendous
+effort from a many people for the past several years. Unless your project has
+both the technical prowess and the <em>desire</em> to tackle this challenge, it&rsquo;s much
+easier to just use Envoy.</p><h3 id=but-isnt-envoy-a-standard-for-service-meshes>But isn&rsquo;t Envoy a &ldquo;standard&rdquo; for service meshes?</h3><p>No.<sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-noteref>6</a></sup> A <em>standard</em> is something that is necessary for interoperability. The
+<em>standard</em> that matters for service meshes is TCP, or HTTP, or things like
+<a href=https://smi-spec.io/ target=_blank rel=noopener>SMI</a> that allow tools to be built on top of the service
+mesh. (E.g. this excellent example of <a href=https://argoproj.github.io/argo-rollouts/getting-started/smi/ target=_blank rel=noopener>Argo driving Linkerd via SMI for canary
+rollouts</a>.)</p><p>Envoy being a popular choice of service mesh data plane proxy is not a
+standard, it&rsquo;s simply a commonality. What would it mean for Envoy to be a
+&ldquo;service mesh standard&rdquo;? That we could keep our data plane in place, and swap
+out the control plane? That we can have different control planes operate the
+same data plane? These are far-fetched use cases at best.</p><h3 id=but-what-if-we-have-a-requirement-to-use-envoy>But what if we have a requirement to use Envoy?</h3><p>I would argue that&rsquo;s not a real requirement. Your job is not to adopt a
+particular piece of technology. Your job is to solve a problem.</p><p>And if your problem is &ldquo;we need to build a reliable, secure, and observable
+Kubernetes platform without paying an insane complexity cost&rdquo; then I highly
+suggest you consider taking a look at Linkerd.</p><h3 id=who-uses-linkerd2-proxy-in-production-today>Who uses Linkerd2-proxy in production today?</h3><p>Everyone who uses Linkerd uses Linkerd2-proxy. That means that you can find
+Linkerd2-proxy powering the critical production architecture of companies like
+Nordstrom, Microsoft, H-E-B, Chase, Clover Health, HP, any many more.</p><h3 id=could-other-service-mesh-projects-use-linkerd2-proxy>Could other service mesh projects use Linkerd2-proxy?</h3><p>Not really. But anyone who is interested in building a high performance
+ultralight network proxy could certainly make use of the underlying Rust
+network libraries that power Linkerd.</p><h3 id=sounds-amazing-how-can-i-get-started-with-linkerd>Sounds amazing! How can I get started with Linkerd?</h3><p>I never thought you&rsquo;d ask. You can install Linkerd in about 5 minutes, including
+mutual TLS, with zero configuration required. Start with our
+<a href=https://linkerd.io/2/getting-started/ target=_blank rel=noopener>getting started guide</a>.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a community project and is hosted by the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is
+<a href=https://linkerd.io/2019/10/03/linkerds-commitment-to-open-governance/ target=_blank rel=noopener>committed to open governance</a>.
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p><p>(Photo by
+<a href="https://unsplash.com/@servuspaul?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Paul Felberbauer</a>
+on
+<a href="https://unsplash.com/?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a>).</p><h2 id=footnotes>Footnotes</h2><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>And while Envoy is great, the recent crop of low-calorie vendors who attach
+themselves to Envoy, promote Envoy as the one true path to the service mesh,
+take swipes at Linkerd because it doesn&rsquo;t &ldquo;support&rdquo; Envoy (as if that were
+somehow a requirement), etc, are most decidedly <em>not</em> great.&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2><p>After all, Linkerd invented the term &ldquo;service mesh&rdquo;, and look where it got
+us.&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:3><p>As measured with the excellent <a href=https://github.com/boyter/scc target=_blank rel=noopener>scc</a> tool by
+running <code>scc source include</code> inside the Envoy repo circa November 2020.&#160;<a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4><p>Similarly measured by running <code>scc linkerd linkerd2-proxy</code> inside the
+linkerd2-proxy repo circa November 2020.&#160;<a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:5><p>Code complexity does not necessarily translate to user-facing complexity, of
+course. One might ask: can an Envoy-based service mesh successfully <em>wrap</em>
+Envoy&rsquo;s complexity, so that end users can avoid the necessity of developing
+operational expertise? Answering this question fully is outside the scope of
+this article (which is about Linkerd, after all!) but a perusal of the
+<a href="https://github.com/istio/istio/issues?q=is%3Aissue+is%3Aopen+envoy+sort%3Acomments-desc" target=_blank rel=noopener>300+ open issues in Istio that refer to Envoy</a>
+suggests that, at a minimum, it is not trivial.&#160;<a href=#fnref:5 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:6><p>We hear this particular argument put forth by vendors of Envoy-based service
+meshes, usually because they don&rsquo;t have a good technical argument to fall
+back to.&#160;<a href=#fnref:6 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

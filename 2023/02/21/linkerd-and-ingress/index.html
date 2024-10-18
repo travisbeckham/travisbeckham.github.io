@@ -1,0 +1,135 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Workshop recap: Linkerd and Ingress Controllers: Bringing the Outside World In | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="This blog post is based on a workshop I recently delivered at Buoyant’s
+Service Mesh Academy. If this seems
+interesting, check out the
+full recording!
+No matter what you&rsquo;re working on in the cloud-native world, you will always
+start by needing to solve the Ingress Problem: how do you give users outside
+your cluster a way to use (some of) the services inside your cluster? There&rsquo;s a
+whole class of tools that exist to solve this problem, collectively called
+ingress controllers, so let&rsquo;s take a quick look at them &ndash; and at how Linkerd
+works with them."><meta property="og:url" content="https://travisbeckham.github.io/2023/02/21/linkerd-and-ingress/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Workshop recap: Linkerd and Ingress Controllers: Bringing the Outside World In"><meta property="og:description" content="This blog post is based on a workshop I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+No matter what you’re working on in the cloud-native world, you will always start by needing to solve the Ingress Problem: how do you give users outside your cluster a way to use (some of) the services inside your cluster? There’s a whole class of tools that exist to solve this problem, collectively called ingress controllers, so let’s take a quick look at them – and at how Linkerd works with them."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-02-21T00:00:00+00:00"><meta property="article:modified_time" content="2023-02-21T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/02/21/linkerd-and-ingress/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/02/21/linkerd-and-ingress/cover.jpg"><meta name=twitter:title content="Workshop recap: Linkerd and Ingress Controllers: Bringing the Outside World In"><meta name=twitter:description content="This blog post is based on a workshop I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+No matter what you’re working on in the cloud-native world, you will always start by needing to solve the Ingress Problem: how do you give users outside your cluster a way to use (some of) the services inside your cluster? There’s a whole class of tools that exist to solve this problem, collectively called ingress controllers, so let’s take a quick look at them – and at how Linkerd works with them."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/02/21/linkerd-and-ingress/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-02-21T00:00:00Z","dateModified":"2023-02-21T00:00:00Z","headline":"Workshop recap: Linkerd and Ingress Controllers: Bringing the Outside World In","image":"https://travisbeckham.github.io/2023/02/21/linkerd-and-ingress/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Workshop recap: Linkerd and Ingress Controllers: Bringing the Outside World In</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>Feb 21, 2023 • 7 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/02/21/linkerd-and-ingress/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><em>This blog post is based on a workshop I recently delivered at Buoyant’s
+<a href=https://buoyant.io/service-mesh-academy target=_blank rel=noopener>Service Mesh Academy</a>. If this seems
+interesting, check out the
+<a href=https://buoyant.io/service-mesh-academy/linkerd-and-ingress-controllers target=_blank rel=noopener>full recording</a>!</em></p><p>No matter what you&rsquo;re working on in the cloud-native world, you will always
+start by needing to solve the <em>Ingress Problem</em>: how do you give users outside
+your cluster a way to use (some of) the services inside your cluster? There&rsquo;s a
+whole class of tools that exist to solve this problem, collectively called
+<em>ingress controllers</em>, so let&rsquo;s take a quick look at them &ndash; and at how Linkerd
+works with them.</p><h2 id=ingress-controllers>Ingress Controllers</h2><p>&ldquo;Ingress controller&rdquo; is a broad term for software running in Kubernetes that
+mediates access from the outside world coming in to the cluster. There are a lot
+of different ingress controllers, with different strengths and weaknesses, but
+all of them have to provide certain basic functionality:</p><ul><li><p>First, they all sit at the very edge of a cluster and are exposed directly to
+the Internet. This implies that they <em>all</em> have to be very careful about
+security.</p><ul><li>A common model here is that the ingress controller will be associated with a
+Kubernetes Service of type <code>LoadBalancer</code>, providing a way for the cluster
+to route traffic from outside the cluster directly to the ingress controller
+while still blocking traffic to other services.</li></ul></li><li><p>Second, they all provide a way to control how requests from outside the
+cluster are routed. Typically, they support sophisticated controls at layer 7;
+many of them also support some layer 4 routing as well.</p><ul><li><p>An example at layer 7 might be something like &ldquo;route any HTTP request where
+the <code>path</code> starts with <code>/foo/</code> to my <code>foo</code> service&rdquo;.</p></li><li><p>An example at layer 4 might be something like &ldquo;route any incoming TCP
+traffic on port 1234 to my <code>bar</code> service&rdquo;.</p></li></ul><p>The way the user configures routing can vary widely between ingress
+controllers.</p></li><li><p>Third, ingress controllers typically also have the capability of terminating
+and originating TLS connections. This gives them an important role in bridging
+the security domains outside and inside the cluster.</p></li><li><p>Finally, the most popular ingress controllers also offer features like user
+authentication, rate limiting, circuit breaking, etc., and you may hear such
+ingress controllers referred to as <em>API Gateways</em>.</p></li></ul><h2 id=ingress-controllers-and-linkerd>Ingress Controllers and Linkerd</h2><p>Linkerd generally works well with most ingress controllers – you&rsquo;re free to use
+whichever one is the best fit for your users and application. This is because to
+Linkerd, the ingress controller is just another meshed workload, and to the
+ingress controller, Linkerd is (usually) invisible.</p><h3 id=the-ingress-controller-is-just-another-meshed-workload>The Ingress Controller Is Just Another Meshed Workload</h3><p>A significant difference between Linkerd and some other meshes is that there&rsquo;s
+almost nothing special about an ingress controller from Linkerd&rsquo;s perspective:
+it&rsquo;s just a workload that&rsquo;s part of the mesh. The fact that it&rsquo;s a workload that
+can receive traffic from the outside world is almost irrelevant: you&rsquo;ll still
+inject it into the mesh, it will still get automatic mTLS and metrics from
+Linkerd, and all the usual Linkerd features will still work.</p><p>The one way that it <em>is</em> likely to be different from other workloads is that
+you&rsquo;ll probably want to tell Linkerd to skip the inbound ports for the ingress
+controller. If you don&rsquo;t do this, the ingress controller won&rsquo;t be able to see
+the IP address of incoming connections: every connection will appear to
+originate with the Linkerd proxy.</p><p>To skip inbound ports, use the <code>config.linkerd.io/skip-inbound-ports</code>
+annotation. Note that you need to use the port on which the ingress controller
+is listening, not the port that the client will see! So, for example, if your
+ingress controller is behind a Service like</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Service</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>myservice</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>type</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>LoadBalancer</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>ports</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>protocol</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>TCP</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>targetPort</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>8080</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>then you would need to use <code>config.linkerd.io/skip-inbound-ports: 8080</code>  –
+trying to skip inbound port 80 wouldn&rsquo;t do anything.</p><h3 id=linkerd-is-mostly-invisible>Linkerd Is (Mostly) Invisible</h3><p>From the ingress controller&rsquo;s perspective, Linkerd is mostly invisible, with one
+very important caveat: the ingress controller should route to <em>Services</em>, not
+the <em>endpoints</em> of Services. Kubernetes terminology here can be confusing, so
+bear with me for a moment.</p><p>A Kubernetes Service resource - glossing over a lot of details - associates a
+name in the cluster&rsquo;s DNS with a set of Pods. Each Pod has an IP address, and
+the Service itself has its own IP, different from that of any of the Pods.
+Collectively, the IP addresses of the Pods are called the <em>endpoints</em> of the
+Service associated with them.</p><p>(To further confuse things, there are Kubernetes resources called Endpoints and
+EndpointSlice, but here we&rsquo;re talking about &ldquo;endpoints&rdquo; as the set of Pod IP
+addresses.)</p><p>Linkerd expects that a connection to a given Service will be sent to the
+Service&rsquo;s IP address, <em>not</em> directly to one of its endpoints. Your ingress
+controller might need to be configured specifically to do this. Some ingress
+controllers can <em>only</em> route to endpoints: those will have to be injected with
+<code>linkerd.io/inject: ingress</code> rather than <code>linkerd.io/inject: enabled</code> – if
+possible, though, it&rsquo;s much better to configure the ingress controller to route
+to the Service instead.</p><h2 id=some-specific-examples>Some Specific Examples</h2><p>We&rsquo;ll talk briefly about using three specific ingress controllers with Linkerd:
+Emissary-ingress, NGINX, and Envoy Gateway.</p><h3 id=emissary-ingress>Emissary-ingress</h3><p><a href=https://www.getambassador.io/products/api-gateway target=_blank rel=noopener>Emissary-ingress</a> is an
+open-source, Kubernetes-native, self-service API Gateway. It&rsquo;s a CNCF Incubating
+project, configured using its own CRDs (such as the
+<a href=https://www.getambassador.io/docs/emissary/latest/topics/using/intro-mappings target=_blank rel=noopener><code>Mapping</code></a>
+CRD), and has been widely adopted since its humble beginnings in 2017.</p><p>There&rsquo;s honestly not a lot to say about setting up Emissary with Linkerd: it
+basically Just Works.
+<a href=https://www.getambassador.io/docs/emissary/latest/tutorials/getting-started target=_blank rel=noopener>Install Emissary</a>,
+inject it into the mesh, and&mldr; you&rsquo;re done. Since Emissary defaults to routing
+to Services, there&rsquo;s nothing special to do there. About the only thing to
+consider is that you&rsquo;ll need to be sure to skip Emissary&rsquo;s inbound ports if you
+want Emissary to pay attention to client IP addresses.</p><h3 id=nginx>NGINX</h3><p><a href=https://nginx.org target=_blank rel=noopener>NGINX</a> is an open-source API Gateway and Web server that
+actually predates Kubernetes, and served as the basis for one of the first
+Kubernetes ingress controllers, called
+<a href=https://docs.nginx.com/nginx-ingress-controller/ target=_blank rel=noopener><code>ingress-nginx</code></a>.
+<code>ingress-nginx</code> is configured using the Kubernetes Ingress resource, and is
+still very widely used in the Kubernetes world.</p><p>When deploying <code>ingress-nginx</code> with Linkerd, the most important thing to realize
+is that it will route to <em>endpoints</em> by default, which is not what you want. To
+make <code>ingress-nginx</code> route to <em>Services</em>, you&rsquo;ll need to include an annotation
+on the Ingress resource:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>nginx.ingress.kubernetes.io/service-upstream</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>&#34;true&#34;</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>After that&rsquo;s done, installing and meshing <code>ingress-nginx</code> should be
+straightforward. Again, you&rsquo;ll probably want to skip inbound ports, too.</p><h3 id=envoy-gateway>Envoy Gateway</h3><p><a href=https://gateway.envoyproxy.io target=_blank rel=noopener>Envoy Gateway</a> is an <em>extremely</em> new ingress
+controller. It&rsquo;s part of the <a href=https://envoyproxy.io target=_blank rel=noopener>Envoy proxy</a> CNCF project,
+which is the core of two distinct CNCF API gateways (Emissary and Contour). In
+2021, people from Emissary, Contour, and Envoy got together and agreed that it
+would be better for all concerned to pool their efforts into a single extensible
+system that could be used as the basis to build on: that single extensible
+system is Envoy Gateway, which first shipped in late 2022.</p><p>More accurately, Envoy Gateway <em>will be</em> that single extensible system. At the
+time of this writing, Envoy Gateway has just hit version 0.3.0, and it still has
+a ways to go to be feature-complete with Emissary and Contour. But it&rsquo;s evolving
+quickly, and 0.3.0 is definitely complete enough to see how it works with
+Linkerd.</p><p>Envoy Gateway is configured using
+<a href=https://gateway-api.sigs.k8s.io/ target=_blank rel=noopener>Gateway API</a> CRDs. There&rsquo;s an interesting
+implementation detail about Gateway API ingress controllers: rather than the
+user directly installing by hand, the Gateway API spec divides installation into
+a <em>control plane</em> part installed by the user, and a <em>data plane</em> part created by
+the control plane.</p><p>In Envoy Gateway&rsquo;s case, the control plane watches for Gateway resources and
+creates a data-plane Deployment for each of them. Whenever a Gateway resource
+changes, its data-plane Deployment is restarted. These ephemeral Deployments can
+be challenging to inject into the Linkerd mesh: the most effective way to do it
+is to put the <code>linker.io/inject</code> annotation on the <code>envoy-gateway-system</code>
+Namespace, since that&rsquo;s where the ephemeral Deployments are created. (You can
+put the <code>config.linkerd.io/skip-inbound-ports</code> annotation there too.)</p><p>Once you know about that, Envoy Gateway works just fine with Linkerd.</p><h2 id=linkerd-and-ingress-controllers>Linkerd and Ingress Controllers</h2><p>As I said at the beginning, you <em>will</em> need to solve the ingress problem when
+you work in the cloud-native world. Linkerd&rsquo;s ability to be agnostic about how
+exactly you do so leaves you free to choose an ingress controller that works
+well for your situation and your application, reducing your operational
+complexity and reducing the effort needed to get you application launched.</p><hr><p><em>If you want more on this topic, check out the Service Mesh Academy workshop on
+<a href=https://buoyant.io/service-mesh-academy/kubernetes-mtls-with-linkerd target=_blank rel=noopener>Linkerd and ingress controllers: Bringing the outside world in</a>
+for hands-on exploration of everything I&rsquo;ve talked about here! And, as always,
+feedback is always welcome &ndash; you can find me as <code>@flynn</code> on the
+<a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a>.</em></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

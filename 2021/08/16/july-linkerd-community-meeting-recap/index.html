@@ -1,0 +1,93 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>July Linkerd Community Meeting Recap | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="The big news this month is Linkerd's CNCF graduation! As you can imagine, the
+entire Linkerd team is very excited and we hope you are too."><meta property="og:url" content="https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="July Linkerd Community Meeting Recap"><meta property="og:description" content="The big news this month is Linkerd's CNCF graduation! As you can imagine, the
+entire Linkerd team is very excited and we hope you are too."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-08-16T00:00:00+00:00"><meta property="article:modified_time" content="2021-08-16T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/cover.png"><meta name=twitter:title content="July Linkerd Community Meeting Recap"><meta name=twitter:description content="The big news this month is Linkerd's CNCF graduation! As you can imagine, the
+entire Linkerd team is very excited and we hope you are too."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Matei David","datePublished":"2021-08-16T00:00:00Z","dateModified":"2021-08-16T00:00:00Z","headline":"July Linkerd Community Meeting Recap","image":"https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"VideoObject","name":"July Linkerd Community Meeting Recap","description":"The big news this month is Linkerd's CNCF graduation! As you can\nimagine, the entire Linkerd team is very excited and we hope you are\ntoo.","thumbnailUrl":"http://i3.ytimg.com/vi/DJ7iUM6aunw/maxresdefault.jpg","uploadDate":"2021-07-29","duration":"PT51M23S","publisher":{"@type":"Organization","name":"Linkerd","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}},"embedUrl":"https://youtu.be/DJ7iUM6aunw","contentUrl":"https://travisbeckham.github.io/2021/08/16/july-linkerd-community-meeting-recap/"}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>July Linkerd Community Meeting Recap</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/matei-david.jpg alt="Matei David" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Matei David</div><div class=blog-post-meta__date>Aug 16, 2021 • 6 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><p>It&rsquo;s time for our monthly Linkerd Community recap. Read the summary, watch
+the recording, or both!</p><p>As usual, we started with a reminder of our
+<a href=https://linkerd.io/community/anchor/ target=_blank rel=noopener>Linkerd Community Anchor Program</a>.
+If you have a Linkerd story you&rsquo;d like to share, we&rsquo;d love to help you tell
+it. Whether you built a cloud native platform with Linkerd or integrated
+the service mesh with another CNCF project, these are all things that are
+incredibly beneficial for the community!</p><p>We are also continuing to gather responses for our
+<a href=https://docs.google.com/forms/d/e/1FAIpQLSfofwKQDOrAN9E9Vg1041623A3-8nmEAxlAbvXw-S9r3QnT9g/viewform target=_blank rel=noopener>2021 Linkerd survey</a>.
+To make Linkerd even more awesome, the Linkerd maintainers need to hear
+from you. If you haven&rsquo;t done so yet, participate today — thank you!</p><h2 id=news-and-updates>News and updates</h2><p>The big news this month is Linkerd&rsquo;s CNCF graduation! As you can imagine,
+the entire Linkerd team is very excited and we hope you are too. We wouldn&rsquo;t
+have been able to do it without our great community!</p><p>As Linkerd moves closer to the 2.11 release, watch out for weekly edge
+releases of up-and-coming features that will likely make the cut. These
+include dependency updates, an even leaner control plane and extensions,
+more granular metrics, and more.</p><p>In other updates: CloudCover released their
+<a href=https://cldcvr.com/news-and-media/blog/benchmarking-istio-consul-and-linkerd/ target=_blank rel=noopener>scale benchmarking with Linkerd</a>,
+Dependabot has been added to the Linkerd GitHub repositories, and we are
+planning on more community engagement. Tweet us if you’d like to see
+anything specific.</p><h2 id=linkerd-roadmap>Linkerd roadmap</h2><p>The Linkerd team has been busy working on the 2.11 release. Ahead of the
+new policy release, we&rsquo;ve analyzed your feedback about improving integration
+between certificate management and cert-manager. As part of this change, we
+moved the trust anchors to a configmap. While this still requires some
+integration work with cert-manager, it&rsquo;ll be a big step forward. By the way,
+feedback like this is super valuable, so keep it coming!</p><p>We are also adding an SMI extension that will extend and manage TrafficSplits,
+among other things. A nice addition to the new policy changes!</p><p>You&rsquo;ll also see StatefulSet support for multicluster. It&rsquo;s close to the finish
+line and should be merged with the next edge release. To support this,
+service-mirror, proxy, and destination controller have also been updated.</p><p>Our policy work is in full swing! Look out for a CRD and controller PR — our
+first controller written in Rust! This expands the language usage outside of
+the proxy and into the broader scope of the project. We are very excited
+about that!</p><p>On the proxy side, we have two work &ldquo;threads&rdquo;. One, to change how the inbound
+proxy is configured to discover port-level authorization policies. The other
+is around FIPS140-2 compliant work. We&rsquo;ve been working on this with the folks
+at NetApp for quite some time and can&rsquo;t wait to see it live. This requires some
+changes to the TLS encryption algorithms, but it is necessary for regulatory
+environments. It won&rsquo;t be enabled by default, instead, adopters will be able
+to opt-in.</p><h2 id=linkerd-cncf-graduation>Linkerd CNCF graduation</h2><p>As mentioned above, Linkerd graduated! This is a reflection of how far the
+project has come but it’s by no means a stopping point. If anything, it’s a
+good time to reflect and move full speed ahead. While graduation does not
+have an immediate effect on engineering, it reflects the mark of approval
+from the Linux Foundation and confers a degree of certainty for adopters.
+Congratulations to the community and the team!</p><h2 id=community-convo-with-dom-depasquale>Community convo with Dom DePasquale</h2><p>Dom DePasquale, Cloud Administrator at Penn State, shared the university&rsquo;s
+Linkerd journey in a conversation with our own Charles Pretzer. Penn State&rsquo;s
+engineering department, had been running Kubernetes and Linkerd in production
+for a while. The team had adopted Linkerd for its
+<a href=https://buoyant.io/mtls-guide/ target=_blank rel=noopener>mTLS</a>
+feature. All
+communication coming into the cluster is TLSed. Once inside the cluster,
+Linkerd takes over and encrypts service-to-service communication, a setup
+that worked really well.</p><p>In 2020, when the pandemic hit, Dom and his team were tasked with building
+a contact tracing system for COVID-19. Time and resources were limited,
+so the natural choice for Dom’s team was to turn to open source software.</p><p>All COVID services were publicly hosted on EKS while the other services were
+kept on-prem. To allow environments to talk to each other, the team relied
+on ingress-to-ingress communication.</p><p>The platform Dom’s team built was also responsible for sending out invites
+to students and faculty members to get tested. All of the invites were sent
+on the same day in large batches of tens of thousands. The team observed an
+increase in 502 status codes and wait time after sending each batch and,
+with the increasing load, the system ground to a halt. Luckily, the team was
+watching the whole situation unfold as it happened and could react quickly.</p><p>After some research, they identified the root cause: a component in the
+identity system that relied heavily on unnecessary checks. Linkerd was
+instrumental in troubleshooting and identifying the problem. To learn more,
+watch Dom&rsquo;s ServiceMeshCon on how his team built a
+<a href=https://buoyant.io/media/how-linkerd-helped-schedule-68-000-covid-tests/ target=_blank rel=noopener>HIPAA-compliant testing and scheduling system with Linkerd</a>.</p><p>Asked about what&rsquo;s missing in Linkerd, Dom said service-to-service RBAC.
+Luckily, it&rsquo;s coming with the 2.11 release!</p><div style=position:relative;padding-bottom:56.25%;height:0;overflow:hidden><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading=eager referrerpolicy=strict-origin-when-cross-origin src="https://www.youtube.com/embed/DJ7iUM6aunw?autoplay=0&controls=1&end=0&loop=0&mute=0&start=0" style=position:absolute;top:0;left:0;width:100%;height:100%;border:0 title="YouTube video"></iframe></div><h2 id=maintainer-deep-dive-alex-and-the-tapshark-extension>Maintainer deep dive: Alex and the Tapshark extension</h2><p>Linkerd maintainer Alex Leong presented Tapshark, a Linkerd extension he
+wrote. It was inspired by the Linkerd CLI command Tap which gives users a
+running stream of live requests. While it&rsquo;s a great way to get forensic
+information for debugging and understanding your system, the format and
+volume of information make it hard to use effectively.</p><p>Tapshark is based on Wireshark’s format, one of Alex’s favorite debugging
+tools. It allows users to see the information in different structures and
+browse through requests within the terminal. It&rsquo;s a lot faster to drill
+down into the data you need!</p><p>Tapshark is a client-side Linkerd extension, no need to deploy anything!
+It uses the existing tap infrastructure and simply re-formats data to
+highlight information faster — how genius is that!</p><p>When asked about how it relates to the debug sidecar, Alex explained it&rsquo;s
+a bit different. While debug sidecar is useful for low-level forensics
+(e.g. looking at sockets), Tapshark is better (and easier to use) for
+high-level protocols like HTTP.</p><p>At the moment, Tap doesn’t show request bodies so Tapshark doesn’t either.
+But it&rsquo;s on the roadmap, so expect to see it soon!</p><p>If this sounds interesting,
+<a href=https://github.com/adleong/tapshark target=_blank rel=noopener>give Tapshark a try</a>.
+You can install it like any other
+<a href=https://linkerd.io/2.10/reference/extension-list/ target=_blank rel=noopener>Linkerd extension</a>.</p><h2 id=linkerd-hero>Linkerd Hero</h2><p>As always, we announced our Linkerd Hero. And the winner is&mldr;Sanskar
+Jaiswal! Huge congrats to Sanskar. Check out
+<a href=https://linkerd.io/2021/07/29/announcing-julys-linkerd-hero/ target=_blank rel=noopener>why he won and why he&rsquo;s such a valuable community member</a>.
+Who is your Linkerd Hero?
+<a href=https://docs.google.com/forms/d/e/1FAIpQLSfNv--UnbbZSzW7J3SbREIMI-HaooyX9im8yLIGB7M_LKT_Fw/viewform target=_blank rel=noopener>Submit your nomination today</a>!</p><p>That&rsquo;s it! Hope you can attend our next community meeting on Thursday,
+August 26 at 9 a.m. PT live.
+<a href=https://community.cncf.io/events/details/cncf-linkerd-community-presents-august-linkerd-online-community-meetup/ target=_blank rel=noopener>Register today</a>!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/05/24/linkerd-and-smi/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/05/24/linkerd-and-smi/>Linkerd and SMI</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>May 24, 2024 • 2 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2023/12/22/announcing-the-december-2023-linkerd-hero/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/12/22/announcing-the-december-2023-linkerd-hero/>Announcing the December 2023 Linkerd Hero!</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Dec 22, 2023 • 2 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2023/11/22/announcing-the-november-2023-linkerd-hero/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/11/22/announcing-the-november-2023-linkerd-hero/>Announcing the November 2023 Linkerd Hero!</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Nov 22, 2023 • 1 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

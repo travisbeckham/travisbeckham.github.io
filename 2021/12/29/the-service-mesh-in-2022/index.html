@@ -1,0 +1,127 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>The service mesh in 2022: What's next for Linkerd? | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="By all accounts, 2021 has been a banner year for Linkerd. The project achieved
+graduated status in the Cloud Native Computing
+Foundation, the
+highest possible level of project maturity. It introduced major features such as
+authorization policy
+and extensions. The
+Linkerd team keynoted at Kubecon
+EU on the many ways Linkerd is
+used to combat COVID-19; it published multiple benchmarks showing an
+order-of-magnitude performance and resource usage lead over
+Istio;
+and it continued to lead the charge on bringing
+Rust in the cloud native space.
+Linkerd&rsquo;s adoption has skyrocketed this year, with organizations as wide-ranging
+as Microsoft, S&amp;P
+Global, and  Norwegian Labour and Welfare
+Administration, along with many others, all publicly
+adopting Linkerd."><meta property="og:url" content="https://travisbeckham.github.io/2021/12/29/the-service-mesh-in-2022/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="The service mesh in 2022: What's next for Linkerd?"><meta property="og:description" content="By all accounts, 2021 has been a banner year for Linkerd. The project achieved graduated status in the Cloud Native Computing Foundation, the highest possible level of project maturity. It introduced major features such as authorization policy and extensions. The Linkerd team keynoted at Kubecon EU on the many ways Linkerd is used to combat COVID-19; it published multiple benchmarks showing an order-of-magnitude performance and resource usage lead over Istio; and it continued to lead the charge on bringing Rust in the cloud native space. Linkerd’s adoption has skyrocketed this year, with organizations as wide-ranging as Microsoft, S&amp;P Global, and Norwegian Labour and Welfare Administration, along with many others, all publicly adopting Linkerd."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-12-29T00:00:00+00:00"><meta property="article:modified_time" content="2021-12-29T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/12/29/the-service-mesh-in-2022/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/12/29/the-service-mesh-in-2022/cover.jpg"><meta name=twitter:title content="The service mesh in 2022: What's next for Linkerd?"><meta name=twitter:description content="By all accounts, 2021 has been a banner year for Linkerd. The project achieved graduated status in the Cloud Native Computing Foundation, the highest possible level of project maturity. It introduced major features such as authorization policy and extensions. The Linkerd team keynoted at Kubecon EU on the many ways Linkerd is used to combat COVID-19; it published multiple benchmarks showing an order-of-magnitude performance and resource usage lead over Istio; and it continued to lead the charge on bringing Rust in the cloud native space. Linkerd’s adoption has skyrocketed this year, with organizations as wide-ranging as Microsoft, S&amp;P Global, and Norwegian Labour and Welfare Administration, along with many others, all publicly adopting Linkerd."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/12/29/the-service-mesh-in-2022/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2021-12-29T00:00:00Z","dateModified":"2021-12-29T00:00:00Z","headline":"The service mesh in 2022: What's next for Linkerd?","image":"https://travisbeckham.github.io/2021/12/29/the-service-mesh-in-2022/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>The service mesh in 2022: What's next for Linkerd?</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Dec 29, 2021 • 6 min read</div></div></div></div><div class=blog-post__cover><img src=/2021/12/29/the-service-mesh-in-2022/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>By all accounts, 2021 has been a banner year for Linkerd. The project <a href=https://linkerd.io/2021/07/28/announcing-cncf-graduation/ target=_blank rel=noopener>achieved
+graduated status in the Cloud Native Computing
+Foundation</a>, the
+highest possible level of project maturity. It introduced major features such as
+<a href=https://linkerd.io/2021/09/30/announcing-linkerd-2.11/ target=_blank rel=noopener>authorization policy</a>
+and <a href=https://linkerd.io/2021/03/11/announcing-linkerd-2.10/ target=_blank rel=noopener>extensions</a>. The
+Linkerd team <a href=https://buoyant.io/media/linkerd-vs-covid-19/ target=_blank rel=noopener>keynoted at Kubecon
+EU</a> on the many ways Linkerd is
+used to combat COVID-19; it published <a href=https://www.cncf.io/blog/2021/12/17/benchmarking-linkerd-and-istio-2021-redux/ target=_blank rel=noopener>multiple benchmarks showing an
+order-of-magnitude performance and resource usage lead over
+Istio</a>;
+and it continued to <a href="https://www.youtube.com/watch?v=BWL4889RKhU" target=_blank rel=noopener>lead the charge on bringing
+Rust</a> in the cloud native space.
+Linkerd&rsquo;s adoption has skyrocketed this year, with organizations as wide-ranging
+as <a href=https://www.microsoft.com/ target=_blank rel=noopener>Microsoft</a>, <a href=https://www.spglobal.com/en/ target=_blank rel=noopener>S&amp;P
+Global</a>, and <a href=https://www.nav.no/ target=_blank rel=noopener>Norwegian Labour and Welfare
+Administration</a>, along with many others, all publicly
+adopting Linkerd.</p><p>Most importantly, in 2021 Linkerd helped thousands of organizations around the
+world adopt a modern, zero-trust approach to securing their Kubernetes clusters
+by providing crucial features such as zero-config mutual TLS and identity-based
+authorization. Not too shabby for a project that just a few years ago was still
+trying to explain to the world exactly <a href=https://buoyant.io/service-mesh-manifesto/ target=_blank rel=noopener>what a service mesh
+is</a>!</p><p>Of course, we&rsquo;re not the type of project to rest on our laurels. We&rsquo;ve been
+planning a very exciting roadmap for next year—read on for a sneak peek of
+what&rsquo;s on the docket for Linkerd next year.</p><h2 id=client-side-policy>Client-side policy</h2><p>In 2022 we&rsquo;ll be working on adding something very important to Linkerd:
+<em>client-side policy</em>, or the ability to control traffic that&rsquo;s allowed out of
+meshed pods. Client-side policy covers a vast set of features, including:</p><ul><li><strong>Header-based routing</strong>: the ability to route traffic based on the headers of
+a request. This unlocks a set of advanced functionality, especially when it
+comes to routing within a set of services.</li><li><strong>Circuit breaking</strong>: the ability to automatically shut off requests to an
+overloaded service. While Linkerd&rsquo;s sophisticated load balancing combined with
+plus Kubernetes&rsquo;s existing health check mechanisms already provide a basic
+form of circuit breaking, there are some good reasons for wanting to provide
+more explicit configuration.</li><li><strong>Egress control</strong>: the ability to prevent types of traffic from exiting the
+cluster. While this is currently possible with things like egress gateways,
+this is a natural feature for client-side policy to encompass, as the data
+plane proxies can enforce these policies directly.</li><li>&mldr; and lots more.</li></ul><p>Linkerd actually already has a basic form of client-side policy in the form of
+<a href=https://linkerd.io/2/reference/service-profiles/ target=_blank rel=noopener>ServiceProfiles</a>, which allow
+you (among other things) to control the retry behavior of callers to a service.
+In 2.12 and beyond, we&rsquo;ll be revisiting ServiceProfiles and tackling this
+important class of features in a more systematic way.</p><h2 id=multi-cluster-failover>Multi-cluster failover</h2><p>We&rsquo;ve seen a clear uptick in interest from Linkerd users in the ability to
+automatically route traffic across clusters in the presence of a failure. For
+users with multiple clusters spread across regions or clouds, this ability is
+critical for availability goals, disaster recovery, and more.</p><p>Linkerd already provides the basic building blocks for doing this, and we&rsquo;ll
+build mechanisms on top of these building blocks for doing automated,
+cross-cluster, per-service failover in a way that&rsquo;s safe and sane.</p><h2 id=fine-grained-authorization-policy>Fine-grained authorization policy</h2><p>In Linkerd 2.11, we <a href=https://linkerd.io/2021/09/30/announcing-linkerd-2.11/ target=_blank rel=noopener>introduced <em>server-side</em>
+policy</a>, which gives you
+control over the traffic allowed into (as opposed to out of) meshed pods.
+Server-side policy added some important features to Linkerd such as
+authorization policy, which restricts pod-to-pod connections based on features
+such as workload identity.</p><p>We&rsquo;ll be extending this model to cover not just workload identity but also
+things like gRPC methods and HTTP verbs and routes, so that policies such as
+&ldquo;only allow GET requests to the <code>/metrics</code> endpoint over mTLS&rsquo;d connections from
+clients in the <code>Foo</code> namespace&rdquo; are possible.</p><h2 id=mesh-expansion-and-spiffe-support>Mesh expansion and SPIFFE support</h2><p>In 2022 we&rsquo;ll be working on making Linkerd&rsquo;s data plane work outside of
+Kubernetes. This means that Linkerd users will be able to mesh services that
+live outside of Kubernetes and get the same reliability, observability, and
+security guarantees they get for Kubernetes services today.</p><p>You can already run Linkerd&rsquo;s ultralight, ultra-fast Rust proxy outside of
+Kubernetes today. However, in order to extend Linkerd&rsquo;s operational
+guarantees—especially around security—to non-Kubernetes environments, we need to
+generalize some existing Linkerd features, notably the way it provisions
+workload identity. We&rsquo;re looking at the <a href=https://spiffe.io/ target=_blank rel=noopener>SPIFFE standard</a>
+as a way to do this in a non-Kubernetes-specific way.</p><h2 id=end-of-life-for-linkerd-1x>End-of-life for Linkerd 1.x</h2><p>In 2022 we will officially end-of-life Linkerd 1.x. The 1.x branch has been in
+maintenance mode for quite some time, and with the recent explosion of adoption
+for Linkerd, our efforts now need to be solely focused on Linkerd 2.x.</p><h2 id=what-about-webassembly>What about WebAssembly?</h2><p>We&rsquo;re keeping a close eye on WebAssembly (Wasm). As a generic mechanism for
+feature delivery, it doesn&rsquo;t really make sense for Linkerd: Wasm imposes a
+significant runtime performance penalty, and for specific features it&rsquo;s better
+to simply implement them in the proxy directly. (One of the many advantages of
+developing our own proxy is that we can simple do this, without fanfare and
+without needing to navigate competing goals between projects.) However, as a
+mechanism for enabling end-user plugins, Wasm may very well make sense for
+Linkerd, and it&rsquo;s in that light that we are evaluating it.</p><h2 id=what-about-ebpf>What about eBPF?</h2><p>We&rsquo;re keeping a close eye on eBPF. As a technology for making network code
+faster, we&rsquo;re all for it, and in that sense <a href=https://buoyant.io/2020/12/23/kubernetes-network-policies-with-cilium-and-linkerd/ target=_blank rel=noopener>you can use Linkerd and eBPF
+together
+today</a>.
+As a codename for &ldquo;replacing sidecars with a per-node Envoy instance&rdquo; or
+&ldquo;replacing sidecars by putting all the logic in the kernel&rdquo; we&rsquo;re unconvinced.
+We became very familiar with the per-node model in Linkerd 1.x, and we
+<a href=https://www.infoq.com/articles/linkerd-v2-production-adoption/ target=_blank rel=noopener>explicitly moved away from it when designing Linkerd
+2.x</a>. The move
+to sidecar (per-pod) proxies in 2.x was motivated by a variety of issues we saw
+with Linkerd 1.x, including messy failure domains, poor separation of security
+concerns, and <a href=https://en.wikipedia.org/wiki/Confused_deputy_problem target=_blank rel=noopener>the confused deputy
+problem</a>.</p><p>Of course, performance and resource consumption are critical for service
+meshes—we&rsquo;ve regularly published <a href=https://linkerd.io/2021/11/29/linkerd-vs-istio-benchmarks-2021/ target=_blank rel=noopener>competitive service mesh
+benchmarks</a> and
+are proud of where Linkerd stands. But, to paraphrase Louis Ryan (!), eking out
+the last bit of performance is far less important than having good units of
+maintenance and isolation. We learned that lesson the hard way with Linkerd 1.x.</p><p>Whether user space or kernel space, we haven&rsquo;t yet seen anything that challenges
+our belief that the sidecar model makes life fundamentally easier for the
+<em>humans</em> who interact with and operate the service mesh.</p><h2 id=2022-is-going-to-be-another-great-year-for-linkerd>2022 is going to be another great year for Linkerd</h2><p>Needless to say, there&rsquo;s a lot more exciting and interesting work we&rsquo;re planning
+on that didn&rsquo;t make it to this list. If any of the above sounds exciting or
+interesting—we&rsquo;d love your help. If you&rsquo;ve got feature request, or think we got
+something totally wrong in our analysis above—let us know. And if you just want
+to sit back and let the features roll in, that&rsquo;s fine too! After all, Linkerd is
+for everyone.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a <a href=/2021/07/28/announcing-cncf-graduation/>graduated project</a> of the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is <a href=https://linkerd.io/2019/10/03/linkerds-commitment-to-open-governance/ target=_blank rel=noopener>committed to
+open
+governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p><p>(<em>Photo by <a href="https://unsplash.com/@xwpics?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Xan
+White</a>
+on
+<a href="https://unsplash.com/?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a>.</em>)</p></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

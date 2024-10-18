@@ -1,0 +1,150 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>How Linkerd retries HTTP requests with bodies | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Linkerd 2.11 is here and with it are some cool new updates.  One I am
+particularly excited about (full disclosure: I worked on it), is retries or
+HTTP requests with bodies."><meta property="og:url" content="https://travisbeckham.github.io/2021/10/26/how-linkerd-retries-http-requests-with-bodies/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="How Linkerd retries HTTP requests with bodies"><meta property="og:description" content="Linkerd 2.11 is here and with it are some cool new updates.  One I am
+particularly excited about (full disclosure: I worked on it), is retries or
+HTTP requests with bodies."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-10-26T00:00:00+00:00"><meta property="article:modified_time" content="2021-10-26T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/10/26/how-linkerd-retries-http-requests-with-bodies/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/10/26/how-linkerd-retries-http-requests-with-bodies/cover.png"><meta name=twitter:title content="How Linkerd retries HTTP requests with bodies"><meta name=twitter:description content="Linkerd 2.11 is here and with it are some cool new updates.  One I am
+particularly excited about (full disclosure: I worked on it), is retries or
+HTTP requests with bodies."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/10/26/how-linkerd-retries-http-requests-with-bodies/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Eliza Weisman","datePublished":"2021-10-26T00:00:00Z","dateModified":"2021-10-26T00:00:00Z","headline":"How Linkerd retries HTTP requests with bodies","image":"https://travisbeckham.github.io/2021/10/26/how-linkerd-retries-http-requests-with-bodies/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>How Linkerd retries HTTP requests with bodies</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/eliza-weisman.jpg alt="Eliza Weisman" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Eliza Weisman</div><div class=blog-post-meta__date>Oct 26, 2021 • 8 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><p><a href=https://github.com/linkerd/linkerd2/issues/6130 target=_blank rel=noopener>Linkerd 2.11</a>
+is here and with it are some cool new updates. One I am particularly
+excited about (full disclosure: I worked on it), is retries for HTTP requests
+with bodies. Linkerd has supported HTTP retries
+<a href=https://linkerd.io/2019/02/22/how-we-designed-retries-in-linkerd-2-2/ target=_blank rel=noopener>since version 2.2</a>,
+but until now, we would only retry requests without bodies. Retrying
+requests with bodies is especially important for anyone using Linkerd with gRPC.
+Since all gRPC requests are HTTP/2 <code>POST</code> requests with bodies, this feature
+enables retries to be configured for gRPC traffic.</p><p>Retrying a request with a body may sound simple (just send the body again,
+right?), but it’s not that straightforward. In order to send a body again,
+the entire body has to be buffered in memory until the original request
+completes. This means that proxies will have to use more memory to store
+those bodies, and buffering the body increases latency. We would like to be able
+to retry these requests while keeping the impact on latency and proxy memory
+usage as low as possible.</p><p>Additionally, some requests, like
+<a href=https://httpwg.org/specs/rfc7540.html#StreamsLayer target=_blank rel=noopener>client-streaming requests in HTTP/2</a>
+and
+<a href=https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding#directives target=_blank rel=noopener><code>Transfer-Encoding: chunked</code> requests</a>
+in HTTP/1.1, can have long bodies that are sent in multiple pieces. If the
+proxy were to buffer the entire request body before forwarding the request
+to the server, it would have to wait for the body to complete —
+potentially introducing significant latency. And, in many cases, the server
+might expect to process those request bodies chunk-by-chunk. Imagine
+uploading a multi-gigabyte video file or a client-streaming gRPC request
+where the client pushes events to the server as they occur. Waiting to
+buffer the entire body before forwarding it could break the behavior that
+the server expects. Instead, we want to be able to forward each chunk as
+it’s received while also buffering it in the proxy in case the request
+needs to be retried.</p><p>To reduce the overhead of buffering body data, we also want to minimize
+copying data from one buffer to another (i.e. <code>memcpy</code> calls). This can be
+quite time-consuming when there’s a lot of data and we want to avoid
+unnecessary memory allocations (i.e. <code>malloc</code> calls).</p><p>In addition, we want to make sure we’re correctly handling potential edge
+cases. What if the server responds with an error before the body stream
+ends? We might have to retry the request before we’ve received the whole
+body from the client. Or, what if the client sends a longer body than the
+request’s
+<a href=https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length target=_blank rel=noopener><code>Content-Length</code> header</a>?
+A standards-compliant client shouldn’t do this, but it might happen due to
+a bug or (if the request came from an untrusted client outside the cluster)
+<a href=https://cwe.mitre.org/data/definitions/444.html target=_blank rel=noopener>an HTTP request smuggling attack</a>.
+If this occurs, we want to ensure that the proxy doesn’t use potentially
+unbounded amounts of memory.</p><p>The bottom line is that there are a lot of potential challenges and edge
+cases involved in buffering and re-sending request bodies. Fortunately,
+we can use some excellent libraries from the Rust ecosystem to help solve
+them. In particular, the <a href=https://crates.io/crates/bytes target=_blank rel=noopener><code>bytes</code></a>
+and <a href=https://crates.io/crates/http-body target=_blank rel=noopener><code>http-body</code></a> crates (both written
+by emeritus Linkerd maintainers), were vital parts of our implementation.</p><h2 id=buffering>Buffering</h2><p>The <code>bytes</code> crate provides
+<a href=https://docs.rs/bytes/1.1.0/bytes/struct.Bytes.html target=_blank rel=noopener>an implementation</a>
+of <em>reference-counted byte buffers</em>. This is very useful because it
+allows us to clone chunks of body data <em>without</em> having to copy all the
+bytes into a new array.</p><p>The Rust standard library’s growable array type,
+<a href=https://doc.rust-lang.org/stable/std/vec/struct.Vec.html target=_blank rel=noopener><code>Vec</code></a>,
+is represented simply as a pointer to an array in memory, plus a length.
+This representation is simple and lightweight. However, it means that if
+we want to clone a <code>Vec</code> of bytes representing an HTTP body chunk, we have
+to do this by allocating a new array and copying all the bytes from the
+existing array into it. This is quite time-consuming when there’s a large
+amount of data.</p><figure><img alt="Cloning buffers: the slow way." class="img img--max-fill img--center img--rounded" src=/2021/10/26/how-linkerd-retries-http-requests-with-bodies/retries-3.png></figure><p>To solve this problem the bytes crate provides the
+<a href=https://docs.rs/bytes/1.1.0/bytes/struct.Bytes.html# target=_blank rel=noopener><code>Bytes</code></a> type, a
+reference-counted byte buffer. Where a <code>Vec</code> is a pointer to an array and
+a length, a <code>Bytes</code> is a pointer to an array, a length, and an atomic reference
+count. This means that multiple owning references to the byte buffer can
+exist at the same time, as it will only be deallocated when all those
+references go away. Now, cloning buffers only requires incrementing a
+reference count and copying a pointer. That&rsquo;s much faster than copying
+all the data — 100% <code>malloc</code> and <code>memcpy</code> free!</p><figure><img alt="Cloning buffers: the fast way." class="img img--max-fill img--center img--rounded" src=/2021/10/26/how-linkerd-retries-http-requests-with-bodies/retries-2.png></figure><p><a href=https://crates.io/crates/hyper target=_blank rel=noopener><code>Hyper</code></a>, the Rust HTTP implementation used
+by the proxy, can be configured to represent HTTP body data using the <code>Bytes</code>
+type. This means that we can take a chunk of data received from the client,
+clone it by incrementing its reference count, and send one clone to the server,
+while retaining the other for a potential retry. But because both clones
+of the buffer are just pointers to the <em>same</em> array in memory, we don’t
+have to copy all of the bytes.</p><p>This solves half of the problem. But, recall that a body might be streaming:
+we might receive several chunks of data over time. How do we add new data to
+our buffer?</p><p>The <code>bytes</code> crate’s
+<a href=https://docs.rs/bytes/1.1.0/bytes/struct.BytesMut.html#method.extend_from_slice target=_blank rel=noopener><code>BytesMut::extend_from_slice</code></a>
+method appends the data from a slice of bytes to a mutable byte buffer.
+But, because we are using the shared, reference-counted <code>Bytes</code> type, we can’t
+use this. Mutating the contents of the byte buffer while it might be
+referenced elsewhere could result in a data race, so the shared <code>Bytes</code> type
+does not provide this API. We could copy the data from the <code>Bytes</code> into a new
+buffer that we can freely mutate, but this would mean allocating and copying
+the actual array of bytes, which defeats the purpose of using reference-counted
+buffers in the first place.</p><p>Instead, our solution was to implement a new type called
+<a href=https://github.com/linkerd/linkerd2-proxy/blob/1cff3aef82c203bf09ccce485506d7a29ca27308/linkerd/http-retry/src/lib.rs#L57-L61 target=_blank rel=noopener><code>BufList</code></a>.
+A <code>BufList</code> is a <code>Vec</code> of multiple <code>Bytes</code> buffers, in the order that they were
+received. Now we can append a new chunk of data to the buffered body by simply
+cloning the <code>Bytes</code> and appending it to the <code>BufList</code>’s vector. By doing this,
+we can avoid copying the bytes, and (most of the time) avoid allocating as
+well. If the <code>BufList</code>’s <code>Vec</code> array is at capacity it may need to be resized to
+append a new chunk, but because it consists only of a pointer to each byte buffer,
+rather than all the bytes received as part of the request body, the array that
+needs to be allocated and copied is quite small, reducing the overhead of
+the allocation significantly.</p><figure><img alt="Appending multiple buffers to a BufList." class="img img--max-fill img--center img--rounded" src=/2021/10/26/how-linkerd-retries-http-requests-with-bodies/retries-1.png></figure><p>The <code>http-body</code> crate contains Rust traits providing interfaces that can be
+implemented types that represent HTTP bodies and HTTP body data chunks.
+Implementing these traits allows us to provide our <code>BufList</code> type to <code>hyper</code> as
+body data when forwarding the request. Although the byte buffers are not
+contiguous in memory, we can still send them on the network with a single
+system call by using
+<a href=https://docs.rs/tokio/1.12.0/tokio/io/trait.AsyncWrite.html#method.poll_write_vectored target=_blank rel=noopener>vectored writes</a>.</p><h2 id=retrying-requests>Retrying requests</h2><p>Now that we have an efficient strategy for buffering body data, how do we
+actually retry requests? First, we wrote a new type, called
+<a href=https://github.com/linkerd/linkerd2-proxy/blob/1cff3aef82c203bf09ccce485506d7a29ca27308/linkerd/http-retry/src/lib.rs#L13-L42 target=_blank rel=noopener><code>ReplayBody</code></a>,
+that implements <code>http-body</code>’s
+<a href=https://docs.rs/http-body/0.4.4/http_body/trait.Body.html target=_blank rel=noopener><code>Body</code> trait</a>.
+A <code>ReplayBody</code> exists in one of two states: it is either receiving the initial
+request body from the client or playing back a buffered body for a retry. When
+we are receiving the initial body from the client, we lazily append each chunk
+to a <code>BufList</code> while forwarding that data to the server. If the request fails
+and we have to retry it, we switch to the “replay” state and play back the data
+buffered in the <code>BufList</code>. After replaying from the buffer, if the original
+request body has not completed (i.e. the server returned an error before we
+received the end of the body), we can switch back to the initial state, and
+continue forwarding from the received body while buffering new data. This means
+that from the client’s perspective, everything is fine — the retry is performed
+completely transparently, even when the body has not yet completed.</p><p>Next, we need to determine <em>whether</em> a given request can be retried. The
+proxy already has logic for determining whether a request is retryable based
+on the
+<a href=https://linkerd.io/2.11/tasks/configuring-retries/ target=_blank rel=noopener><code>ServiceProfile</code> configuration</a>
+and retry budget. Previously, that logic would always determine requests that
+have bodies to be non-retryable. All we do is modify this logic to allow
+retrying requests with bodies. To avoid potentially unbounded buffering,
+we set a maximum <code>Content-Length</code> that the proxy will buffer for retries.
+Requests with <code>Content-Length</code> headers over 64 KB are never considered
+retryable.</p><p>Additionally, as a safeguard against situations where the <code>Content-Length</code> header
+is incorrect and the body is longer than its advertised length, we added a
+check in the <code>ReplayBody</code> type that stops buffering if the buffer ever exceeds
+the limit. If this occurs, any previously buffered data is discarded and
+the request will no longer be retried. This means that the proxy cannot run
+out of memory due to a bug in the client, or a malicious request from the
+outside world.</p><h2 id=summary>Summary</h2><p>Retries are one of Linkerd’s most important reliability features. Before
+Linkerd 2.11, though, only requests without bodies could be retried,
+limiting the cases where this feature could be used. In 2.11, however,
+we added support for retrying requests with bodies.</p><p>Retrying requests with bodies involves some interesting implementation
+challenges, especially when we take streaming bodies into consideration.</p><p>In this post, we looked at how the Linkerd proxy minimizes the performance
+overhead of buffering request bodies by reducing copying and allocation.
+We also discussed how the proxy determines which requests can be retried,
+and some of the edge cases that had to be taken into consideration.</p><p>We hope you’re as excited as we are for this new Linkerd feature. You can
+try it out yourself by upgrading to Linkerd 2.11 (if you haven’t already)
+and <a href=https://linkerd.io/2.11/tasks/configuring-retries/ target=_blank rel=noopener>enabling retries</a> on
+routes with request bodies!</p></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

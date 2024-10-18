@@ -1,0 +1,185 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Benchmarking Linkerd and Istio | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Update 2021-11-29: we&rsquo;ve repeated these experiments with the latest versions
+of Linkerd and Istio.
+Two years ago, the fine folks at Kinvolk benchmarked the
+performance of Linkerd and Istio and showed that Linkerd was dramatically
+faster and smaller than Istio in all but one
+area
+(Linkerd used more data plane CPU). Recently, we repeated those experiments
+with the latest versions of both projects. Our results show that Linkerd not
+only remains dramatically faster than Istio, but now also consumes an order of
+magnitude less data plane memory and CPU while doing so. These results were
+sustained even at throughput levels over 3x more than what Kinvolk evaluated,
+and you can reproduce them yourself."><meta property="og:url" content="https://travisbeckham.github.io/2021/05/27/linkerd-vs-istio-benchmarks/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Benchmarking Linkerd and Istio"><meta property="og:description" content="Update 2021-11-29: we’ve repeated these experiments with the latest versions of Linkerd and Istio.
+Two years ago, the fine folks at Kinvolk benchmarked the performance of Linkerd and Istio and showed that Linkerd was dramatically faster and smaller than Istio in all but one area (Linkerd used more data plane CPU). Recently, we repeated those experiments with the latest versions of both projects. Our results show that Linkerd not only remains dramatically faster than Istio, but now also consumes an order of magnitude less data plane memory and CPU while doing so. These results were sustained even at throughput levels over 3x more than what Kinvolk evaluated, and you can reproduce them yourself."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-05-27T00:00:00+00:00"><meta property="article:modified_time" content="2021-05-27T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/05/27/linkerd-vs-istio-benchmarks/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/05/27/linkerd-vs-istio-benchmarks/cover.jpg"><meta name=twitter:title content="Benchmarking Linkerd and Istio"><meta name=twitter:description content="Update 2021-11-29: we’ve repeated these experiments with the latest versions of Linkerd and Istio.
+Two years ago, the fine folks at Kinvolk benchmarked the performance of Linkerd and Istio and showed that Linkerd was dramatically faster and smaller than Istio in all but one area (Linkerd used more data plane CPU). Recently, we repeated those experiments with the latest versions of both projects. Our results show that Linkerd not only remains dramatically faster than Istio, but now also consumes an order of magnitude less data plane memory and CPU while doing so. These results were sustained even at throughput levels over 3x more than what Kinvolk evaluated, and you can reproduce them yourself."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/05/27/linkerd-vs-istio-benchmarks/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2021-05-27T00:00:00Z","dateModified":"2021-05-27T00:00:00Z","headline":"Benchmarking Linkerd and Istio","image":"https://travisbeckham.github.io/2021/05/27/linkerd-vs-istio-benchmarks/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Benchmarking Linkerd and Istio</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>May 27, 2021 • 11 min read</div></div></div></div><div class=blog-post__cover><img src=/2021/05/27/linkerd-vs-istio-benchmarks/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><strong>Update 2021-11-29: we&rsquo;ve repeated these experiments with the <a href=/2021/11/29/linkerd-vs-istio-benchmarks-2021/>latest versions
+of Linkerd and Istio</a>.</strong></p><p>Two years ago, the fine folks at <a href=https://kinvolk.io target=_blank rel=noopener>Kinvolk</a> benchmarked the
+performance of Linkerd and Istio and showed that <a href=https://kinvolk.io/blog/2019/05/performance-benchmark-analysis-of-istio-and-linkerd/ target=_blank rel=noopener>Linkerd was dramatically
+faster and smaller than Istio in all but one
+area</a>
+(Linkerd used more data plane CPU). Recently, we repeated those experiments
+with the latest versions of both projects. Our results show that <strong>Linkerd not
+only remains dramatically faster than Istio, but now also consumes an order of
+magnitude less data plane memory and CPU while doing so</strong>. These results were
+sustained even at throughput levels over 3x more than what Kinvolk evaluated,
+and you can reproduce them yourself.</p><p>Read on for more!</p><h2 id=background>Background</h2><p>In 2019, Kinvolk released <a href=/2019/05/18/linkerd-benchmarks/>public benchmark numbers comparing Linkerd to
+Istio</a>.
+This work accomplished two things. First, it produced an <a href=https://github.com/kinvolk/service-mesh-benchmark target=_blank rel=noopener>open source service
+mesh benchmarking harness</a>
+so that anyone could reproduce the results. This harness was notable because it
+mimicked &ldquo;real life&rdquo; scenarios: it sent a sustained level of traffic through a
+simple microservices application, made use of both gRPC and HTTP calls, and
+measured the cost of using a service mesh in terms of memory and CPU consumed
+as well as latency added. Critically, latency was measured from the client&rsquo;s
+perspective, yielding user-facing numbers, as opposed to internal proxy
+timings.</p><p>The second thing Kinvolk produced were the actual benchmark results circa 2019
+for both Linkerd and Istio. These numbers showed that Linkerd was dramatically
+faster and that Linkerd&rsquo;s resource consumption was also dramatically smaller in
+all factors except one—Linkerd&rsquo;s data plane (i.e. its proxies) consumed
+more CPU than Istio at the highest level of load.</p><p>Two years later and after many releases from both projects, we decided to
+revisit these experiments.</p><h2 id=experiment-setup>Experiment setup</h2><p>In these experiments, we applied the Kinvolk benchmark suite to the latest
+stable releases of both projects: Linkerd 2.10.2 (with its default
+installation) and Istio 1.10.0 (with its &ldquo;minimal&rdquo; config). We ran the latest
+version of the benchmark harness on a Kubernetes v1.19 cluster using the
+Lokomotive Kubernetes distribution. The benchmark ran on bare-metal hardware
+kindly provided by <a href=https://www.equinix.com/ target=_blank rel=noopener>Equinix Metal</a> to CNCF projects.</p><p>Our first step was to find a test environment within Equinix Metal that could
+deliver consistent results across runs. This was a surprisingly difficult task:
+many of the environments we tried produced hugely variable latencies between
+runs, including for the base case of no service mesh. (For example, in one
+environment we tried, the benchmarks reported maximum latencies of anywhere
+from 26ms to 159ms at 200 RPS for the no service mesh case!)</p><p>We finally arrived at a cluster in the <a href=https://metal.equinix.com/developers/docs/locations/facilities/#core-sites target=_blank rel=noopener>Equinix Metal <code>dfw2</code>
+datacenter</a>
+which yielded consistent behavior with low variance between runs. This cluster
+comprised 6 worker nodes of the <code>s3.xlarge.x86</code> configuration (Intel Xeon 4214
+with 24 physical cores @ 2.2GHz and 192GB of RAM) on which the benchmark
+application ran, plus one load generator node of the same config, plus one K8s
+master node of a c2.medium.x86 config.</p><p>Next, we turned to the parameters of the harness. While the original Kinvolk
+work evaluated performance at 500 requests per second (RPS) and 600 RPS, we
+wanted to try a broader range: we evaluated the meshes at 20 RPS, 200 RPS, and
+2,000 RPS. At each of these levels, we ran 6 independent runs of 10 minutes
+each of sustained load, for Linkerd, Istio, and the base case of no service
+mesh. All benchmark and mesh resources were reinstalled in between runs. For
+each level, we discarded the single run with the highest maximum latency,
+leaving us with 5 runs. (Our <a href=https://docs.google.com/spreadsheets/d/1x0QXFAvL0nWOIGL5coaaW1xwsju5EmSjsqjw6bwHMlQ/ target=_blank rel=noopener>raw data is
+available</a>
+for perusal.)</p><p>Note that the Kinvolk framework measures the behavior of the service mesh in a
+very specific way:</p><ul><li>It measures memory usage at the highest point for both control plane and data
+plane. In other words, the highest memory usage from the control plane (as a
+whole, i.e. with any subcomponents aggregated together) at any point in the
+run is reported as the control plane memory consumption for the run.</li><li>Similarly, the highest memory usage from any single data plane proxy is
+reported as the data plane consumption for the run.</li><li>It measures CPU usage in a similar way, using CPU time as the metric.</li><li>It measures latency from the client&rsquo;s perspective (the load generator), which
+includes time on the cluster&rsquo;s network, time in the application, time in the
+proxies, and so on. Latency is reported as the percentiles of a distribution,
+e.g. p50 (median), p99, p999 (99.9th percent), and so on.</li></ul><p>(See <a href=#summary-and-discussion>Summary and discussion</a> below for more on this.)</p><p>Note also that the numbers reported by this benchmark are a function of both
+the service mesh <em>and</em> of the harness and its environment. In other words,
+these are not absolute scores but relative ones, which can only be evaluated
+against other alternatives measured in the same environment and same way.<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup></p><h2 id=what-service-mesh-features-were-tested>What service mesh features were tested?</h2><p>While each service mesh provides a large set of features, only a subset of
+these were actually in play during these experiments:</p><ul><li>Both service meshes had
+<a href=https://buoyant.io/mtls-guide/ target=_blank rel=noopener>mTLS</a>
+enabled, and were encrypting traffic and
+validating identity between all application pods.</li><li>Both service meshes were tracking metrics, including L7 metrics, though these
+metrics were not consumed in this experiment.</li><li>Both service meshes logged various messages at the INFO level by default. We
+did not configure logging.</li><li>Both service meshes were capable of adding retries and timeouts, and of
+shifting traffic in various ways, but none of these features were explicitly
+used in this experiment.</li><li>No distributed tracing, multi-cluster communication, or other &ldquo;mesh-y&rdquo;
+features were enabled.</li></ul><h2 id=results>Results</h2><p>The results of our experiments are shown in the graphs below. Each point in
+these graphs is the mean of the five runs, with error bars representing one
+standard deviation from that mean. The bars themselves represent Linkerd
+(blue), Istio (orange) and the baseline of no service mesh (yellow).</p><h3 id=latency-at-20-rps>Latency at 20 RPS</h3><p>Starting at the relatively calm level of 20 RPS, we already see a big
+difference in user-facing latency: Linkerd&rsquo;s median latency was 17ms, 11ms over
+the baseline of 6ms. Istio&rsquo;s median latency, by contrast, was 26ms, almost
+twice the additional latency of Linkerd. At the maximum, Linkerd added 53ms
+over the baseline of 17ms of latency, whereas Istio&rsquo;s max latency added 188ms,
+over three times the additional latency of Linkerd.</p><p>Looking at the percentiles, we see that Istio&rsquo;s latency distribution jumped
+dramatically at the 99th percentile to ~200ms, while Linkerd showing a more
+gradual increase in the higher percentiles to 70ms. (Remember that these
+latency numbers are measured from the client&rsquo;s perspective, i.e. what a user of
+this application would actually experience.)</p><figure><img alt="Latency at 20 RPS" class="img img--max-fill img--center img--rounded" src=/2021/05/27/linkerd-vs-istio-benchmarks/latency-20rps.png><figcaption>Latency at 20 RPS</figcaption></figure><h3 id=latency-at-200-rps>Latency at 200 RPS</h3><p>The 200 RPS numbers tell a very similar story and the median latency numbers
+are almost identical: Linkerd&rsquo;s median latency of 17ms represents 11ms over the
+baseline median of 6ms, while Istio&rsquo;s median latency of 25ms is 19ms over. At
+the max, Istio&rsquo;s latency of 221ms is almost 200ms over the baseline of 23ms,
+while Linkerd&rsquo;s max latency of 92ms is ~70ms over, 2.5x less than Istio. We
+see the same jump in Istio&rsquo;s latency occurring at the 99th percentile to almost
+200ms of user-facing latency, with Linkerd leveling out at the 99.9th
+percentile to almost 90ms.</p><figure><img alt="Latency at 200 RPS" class="img img--max-fill img--center img--rounded" src=/2021/05/27/linkerd-vs-istio-benchmarks/latency-200rps.png><figcaption>Latency at 200 RPS</figcaption></figure><h3 id=latency-at-2000-rps>Latency at 2,000 RPS</h3><p>Finally, at 2,000 RPS—over three times what Kinvolk evaluated—we see the same
+pattern again: at the median, Linkerd introduces an additional 9ms of latency
+over the baseline of 6ms vs Istio&rsquo;s additional 15ms; at the max, Linkerd
+introduces an additional 47ms over the baseline of 25ms, and Istio adding 5x
+that with an additional ~253ms. Generally speaking, at each percentile
+reported, Istio introduced between 40% to 400% more additional latency than
+Linkerd.</p><figure><img alt="Latency at 2,000 RPS" class="img img--max-fill img--center img--rounded" src=/2021/05/27/linkerd-vs-istio-benchmarks/latency-2000rps.png><figcaption>Latency at 2,000 RPS</figcaption></figure><h2 id=resource-consumption>Resource consumption</h2><p>Let&rsquo;s turn now to resource usage. The CPU and memory consumption of each
+service mesh are shown in the graphs below. These numbers are fairly consistent
+across all throughput levels, so we&rsquo;ll focus on the highest-load scenario of
+2,000 RPS.</p><p>Starting with the control plane, we see that Istio&rsquo;s control plane usage
+averaged 837mb, about 2.5x Linkerd&rsquo;s control plane memory consumption of 324mb.
+Linkerd&rsquo;s CPU usage was orders of magnitude smaller—71ms of control plane CPU
+time versus Istio&rsquo;s 3.7s.</p><p>More important than the control plane, however, is the data plane. After all,
+this is the part of the mesh that must scale out with the application. Here we
+see another dramatic difference: the maximum memory consumed by a Linkerd proxy
+was, on average, 17.8mb, whereas the maximum memory consumed by one of Istio&rsquo;s
+Envoy proxies was 154.6mb—a factor of 8. Similarly, Linkerd&rsquo;s maximum proxy CPU
+time recorded was 10ms, whereas Istio&rsquo;s was 88ms—almost an order of magnitude
+difference.</p><figure><img alt="Resource usage" class="img img--max-fill img--center img--rounded" src=/2021/05/27/linkerd-vs-istio-benchmarks/grid.png><figcaption>Resource usage</figcaption></figure><h2 id=summary-and-discussion>Summary and discussion</h2><p>In these benchmarks, designed to mimic behavior in a real-world scenario, we
+saw Linkerd dramatically outperform Istio while maintaining a resource cost
+that is many orders of magnitude smaller at the critical data plane level. At
+the highest throughput evaluated, we saw Linkerd consume 1/9th the memory and
+1/8th the CPU at the data plane, while delivering 75% of the additional median
+latency and less than 1/5th the additional maximum latency of Istio.</p><p>Benchmarking is as much art as science. In these experiments, we made a
+conscious choice to stick to the Kinvolk benchmark framework as published. In
+future work, there are several things we might consider changing. For example:</p><ul><li>Measuring cumulative rather than maximum resource consumption is arguably
+more reflective of true cost.</li><li>Measuring CPU in terms of cores consumed rather than CPU time might be a
+better analog to the way memory is measured.</li><li>Calculating latency percentiles over all data from all runs, rather than
+taking the mean of percentiles over individual runs, would be more
+statistically accurate.</li></ul><p>Additionally, our experiments were significantly simpler than Kinvolk&rsquo;s 2019
+experiments, which involved 30 minutes of sustained traffic, different
+clusters, different datacenters, and other techniques to control for variable
+hardware or networking. In our case, we explicitly focused on finding a
+low-variance environment first on which to run the tests.</p><h2 id=why-is-linkerd-so-much-faster-and-lighter>Why is Linkerd so much faster and lighter?</h2><p>The large difference in performance and resource cost between Linkerd and Istio
+primarily comes down to one thing: <a href=https://linkerd.io/2020/12/03/why-linkerd-doesnt-use-envoy/ target=_blank rel=noopener>Linkerd&rsquo;s Rust-based &ldquo;microproxy&rdquo;,
+Linkerd2-proxy</a>.
+This micro-proxy powers Linkerd&rsquo;s entire data plane, and the benchmark largely
+reflects its performance and resource consumption.</p><p><a href=https://linkerd.io/2020/07/23/under-the-hood-of-linkerds-state-of-the-art-rust-proxy-linkerd2-proxy/ target=_blank rel=noopener>We&rsquo;ve written a lot about
+Linkerd2-proxy</a>
+as well as our <a href=https://www.infoq.com/articles/linkerd-v2-production-adoption/ target=_blank rel=noopener>motivations behind adopting
+Rust</a> back in
+the dark ages of 2018. Interestingly enough, the primary reason for building
+Linkerd2-proxy was not for performance but for <em>operational</em> reasons: operating
+an Envoy-based service mesh like Istio often requires you to become an expert
+at operating Envoy, a challenge which we did not relish imposing upon Linkerd
+users.<sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup></p><p>Happily, the choice to build Linkerd2-proxy also resulted in significant
+performance and efficiency gains. By solving the very specific problem of being
+a &ldquo;service mesh sidecar proxy&rdquo; only, we can be extremely efficient at the data
+plane level. And by building Linkerd2-proxy in Rust, we can ride the wave of
+the incredible technological investment placed in that ecosystem: libraries
+like <a href=https://github.com/tokio-rs/tokio target=_blank rel=noopener>Tokio</a>,
+<a href=https://github.com/hyperium/hyper target=_blank rel=noopener>Hyper</a>, and
+<a href=https://github.com/tower-rs target=_blank rel=noopener>Tower</a> are the focal point of some of the world&rsquo;s
+best systems thinking and design.</p><p>Linkerd2-proxy isn&rsquo;t just incredibly fast, light, and secure, it represents
+some of the most cutting edge technology in the entire CNCF landscape.</p><h2 id=future-work>Future work</h2><p>Oddly enough, despite Linkerd&rsquo;s excellent performance in these benchmarks, we
+have yet to make a concentrated effort on performance-tuning the proxy. We
+expect that spending time on performance will result in additional gains in
+this area.</p><p>We are also eagerly watching the <a href=https://smp-spec.io/ target=_blank rel=noopener>SMP project</a> as a
+potential source of benchmarking standards. Ideally, these benchmarks
+would be run by a neutral third party. Which brings us to:</p><h2 id=how-to-reproduce-these-results>How to reproduce these results</h2><p>If you want to reproduce these experiments on your own, you can follow the
+<a href=https://github.com/linkerd/linkerd2/wiki/Linkerd-Benchmark-Setup target=_blank rel=noopener>benchmarking
+instructions</a>.</p><p>If you try this, please see our <a href=#experiment-setup>comments above</a> about
+experimental methodology. It is critical that you find an environment that can
+deliver consistent results, especially for things like max latency that are
+very sensitive to network traffic, resource contention, and so on. Also,
+please remember that the numbers you produce will be relative, not absolute,
+measurements.</p><p>And let us know what you find!</p><h2 id=thanks>Thanks</h2><p>A special thank you to the kind folks at Equinix for providing the Kubernetes
+environment that made this all possible; to the CNCF, who made it possible for
+the Linkerd project to run these experiments; and to Kinvolk, especially Thilo
+Fromm, for the excellent benchmark harness.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a community project and is hosted by the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is
+<a href=https://linkerd.io/2019/10/03/linkerds-commitment-to-open-governance/ target=_blank rel=noopener>committed to open governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p><p>(<em>Photo by <a href="https://unsplash.com/@marcsm?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText%22" target=_blank rel=noopener>Marc Sendra Martorell</a> on <a href="https://unsplash.com/s/photos/speed?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a>.</em>)</p><h2 id=footnotes>Footnotes</h2><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>For example, statements like &ldquo;Linkerd added Xms of latency at the median&rdquo; in this report do not mean that Linkerd will add Xms of median latency to <em>your</em> application. Nor do they mean that an individual Linkerd proxy will add Xms of latency (in fact, the median latency of an individual Linkerd proxy is less than a millisecond for most types of traffic).&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2><p>The proxy might be the most interesting part of the service mesh from a technology perspective, but it&rsquo;s the <em>least</em> interesting part from the users&rsquo; perspective. Our belief is that the service mesh proxy should be an implementation detail, and we strive hard to ensure that the majority of Linkerd users have to learn very little about Linkerd2-proxy.&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

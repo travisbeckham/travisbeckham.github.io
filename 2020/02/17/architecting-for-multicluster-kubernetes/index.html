@@ -1,0 +1,120 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Architecting for Multicluster Kubernetes | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="
+  
+    
+      
+      
+        
+      
+      
+        Note
+      
+    
+  
+  
+    Linkerd 2.8 has been released and implements these requirements.
+Check out the release blog post and get
+started on your own clusters!
+  
+
+
+
+Recently, the Linkerd community has been spending time tackling the challenge of
+multicluster Kubernetes. How can we apply features like Linkerd&rsquo;s zero-config
+automatic mTLS, or traffic splitting, across multiple Kubernetes clusters? What
+should the service mesh do, and more importantly: what should the service mesh
+not do?"><meta property="og:url" content="https://travisbeckham.github.io/2020/02/17/architecting-for-multicluster-kubernetes/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Architecting for Multicluster Kubernetes"><meta property="og:description" content=" Note Linkerd 2.8 has been released and implements these requirements. Check out the release blog post and get started on your own clusters! Recently, the Linkerd community has been spending time tackling the challenge of multicluster Kubernetes. How can we apply features like Linkerd’s zero-config automatic mTLS, or traffic splitting, across multiple Kubernetes clusters? What should the service mesh do, and more importantly: what should the service mesh not do?"><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2020-02-17T00:00:00+00:00"><meta property="article:modified_time" content="2020-02-17T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2020/02/17/architecting-for-multicluster-kubernetes/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2020/02/17/architecting-for-multicluster-kubernetes/cover.png"><meta name=twitter:title content="Architecting for Multicluster Kubernetes"><meta name=twitter:description content=" Note Linkerd 2.8 has been released and implements these requirements. Check out the release blog post and get started on your own clusters! Recently, the Linkerd community has been spending time tackling the challenge of multicluster Kubernetes. How can we apply features like Linkerd’s zero-config automatic mTLS, or traffic splitting, across multiple Kubernetes clusters? What should the service mesh do, and more importantly: what should the service mesh not do?"><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2020/02/17/architecting-for-multicluster-kubernetes/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Thomas Rampelberg","datePublished":"2020-02-17T00:00:00Z","dateModified":"2020-02-17T00:00:00Z","headline":"Architecting for Multicluster Kubernetes","image":"https://travisbeckham.github.io/2020/02/17/architecting-for-multicluster-kubernetes/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Architecting for Multicluster Kubernetes</h1><div class=blog-post-meta><div class=blog-post-meta__body><div class=blog-post-meta__name>Thomas Rampelberg</div><div class=blog-post-meta__date>Feb 17, 2020 • 6 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><div class="alert alert--info alert--callout"><div class=alert__title><svg class="icon icon--current" viewBox="0 0 24 24"><path d="M13 9H11V7h2m0 10H11V11h2M12 2A10 10 0 002 12 10 10 0 0012 22 10 10 0 0022 12 10 10 0 0012 2z"/></svg><h4>Note</h4></div><div class=alert__content>Linkerd 2.8 has been released and implements these requirements.
+Check out the <a href=/2020/06/09/announcing-linkerd-2.8/>release blog post</a> and get
+started on your own clusters!</div></div><p>Recently, the Linkerd community has been spending time tackling the challenge of
+multicluster Kubernetes. How can we apply features like Linkerd&rsquo;s zero-config
+automatic mTLS, or traffic splitting, across multiple Kubernetes clusters? What
+should the service mesh do, and more importantly: what should the service mesh
+not do?</p><p>Like any good engineering project, the best way to start is by getting clear on
+the requirements. In this blog post, we outline the minimal requirements of a
+multi-cluster solution that makes cross-cluster traffic more reliable, secure
+and observable. In subsequent blog posts, we&rsquo;ll address some of the
+implementation choices.</p><h2 id=from-whence-dost-thou-multi-cluster-sirrah>From whence dost thou multi-cluster, sirrah?</h2><p>Kubernetes clusters are like Pringles - you can&rsquo;t just have one! In fact, some
+organizations such as
+<a href=https://srcco.de/posts/how-zalando-manages-140-kubernetes-clusters.html target=_blank rel=noopener>Zalando</a>
+have around 100 of them. By running multiple clusters, it becomes possible to
+keep the concerns of each cluster separate. Instead of having to solve the
+constraints of every application and solution, the problem space shrinks. This
+ends up being a fantastic tool to allow for architecting solutions in a more
+flexible, simple way.</p><p>Unfortunately, each new cluster adds extra complexity to the system. There&rsquo;s
+more to manage, keep up to date and something needs to handle connectivity
+between all the applications running on the clusters. Can Linkerd help us here?
+To understand the solution, let&rsquo;s first list a set of requirements.</p><h2 id=requirement-i-support-hierarchical-networks>Requirement I: Support Hierarchical Networks</h2><p>Kubernetes is an interesting beast. One of the implications of having a single
+IP address per pod is that by default each cluster ends up being its own
+network. Overlay networks are only routable and discoverable inside the cluster
+itself. It is possible to architect around this by using tools such as
+<a href=https://github.com/submariner-io/submariner target=_blank rel=noopener>Submariner</a> or
+<a href=https://www.projectcalico.org/ target=_blank rel=noopener>Project Calico</a>. These solutions are awesome if
+you have a hard requirement for maintaining a flat network, with each pod
+communicating directly to pods in other clusters. They, however, introduce new
+points of failure and add complexity that needs to be managed.</p><p>In an effort to keep complexity down and not require other tools, it is
+important that any multicluster implementation work with the current state of
+Kubernetes. If we can&rsquo;t rely on a flat network, the implication is that there
+needs to be some kind of gateway that manages traffic coming into clusters and
+routes to the correct backend service.</p><h2 id=requirement-ii-maintain-independent-state>Requirement II: Maintain Independent State</h2><p>In a world where there is a totally flat, routable network between every pod in
+every cluster, it <em>still</em> doesn&rsquo;t make sense to allow direct communication. For
+each pod to talk directly to another pod, it needs to discover that remote pod
+somehow. This introduces a requirement for global state between each cluster.
+The fault zone for each cluster has now been smashed together! Let&rsquo;s describe a
+failure scenario here to understand why this has happened and what it could
+mean.</p><p>Communication between pods in Kubernetes is managed by the <code>Service</code> resource.
+By default, this resource creates a virtual IP address: the ClusterIP. When a
+pod decides it wants to talk to another service, DNS returns the cluster IP of
+this service. As the pod tries to connect to the cluster IP, iptables on the
+local node has been configured to pick a destination pod IP address randomly.
+<code>kube-proxy</code> is in charge of configuring iptables on each node in the cluster
+and does this whenever a service is changed, a pod starts or stops. These
+changes happen on every node and because of iptables implementation details are
+extremely expensive.</p><p>By requiring global visibility, state changes in some clusters will impact all
+clusters. This moves potentially disparate clusters into the same fault zone and
+immediately reduces the max possible scale. No longer is it possible for each
+cluster to scale independently, instead the max scale is defined by the size of
+every cluster. Any misconfigurations in one cluster, such as launching a
+significant number of pods has the ability to DoS every other cluster. This
+seems to do the exact opposite of what multiple clusters were supposed to do!</p><p>Keeping state independent and managing updates via replication allows
+implementations to filter updates to exactly the data required. Issues external
+to the local cluster become isolated and ensure that separate components cannot
+take each other down.</p><h2 id=requirement-iii-have-an-independent-control-plane>Requirement III: Have an Independent Control Plane</h2><p>It is tempting to introduce a shared control plane. This effectively centralizes
+the state, reduces the management overhead of disparate components and has the
+potential of making globally optimized decisions. Outside of sharing many of the
+same arguments as globally replicated state, this introduces a couple other
+downsides.</p><p>For starters, connectivity issues are a real thing. When clusters sit at two
+different sides of a network, any issues in the middle can introduce failures.
+These can manifest as anything from increased latency all the way to a complete
+loss of connectivity. In the situation where there is a complete loss of
+connectivity, any clusters that cannot talk to the central control plane will
+either be completely broken or start to experience odd errors as the state
+differs from local caches and the shared control plane. Once again, potentially
+separate fault zones have been merged and the entire system fails when its
+weakest link experiences issues.</p><p>Even in a perfect world where networks never experience failures, the
+shared control plane introduces a critical downside. As clusters get provisioned
+further away from the shared control plane, operations like discovery updates or
+policy checks get slower. This is simply because the latency between processes
+will increase and any operation requiring communication with the central cluster
+will become slower and slower.</p><p>Keeping control planes (and data planes for that matter) separate provides
+freedom to each cluster. This freedom lets the cluster operators manage
+versions, connectivity and functionality as it is best for them. The loose
+coupling makes more resilient systems and actually reduces the complexity
+required overall.</p><h2 id=onwards-to-solutioneering>Onwards to solutioneering</h2><p>With these three constraints —supporting hierarchical networks, maintaining
+independent state, and having an independent control plane— we have the necessary
+framework to implement a solution that takes the low complexity model Linkerd uses
+and expands it to multiple clusters.</p><p>In a future post, we&rsquo;ll be outlining the solutions we&rsquo;ve arrived on. In the
+meantime, we’d love to hear your feedback on this set of requirements! Please
+comment on the
+<a href="https://docs.google.com/document/d/1uzD90l1BAX06za_yie8VroGcoCB8F2wCzN0SUeA3ucw/edit#heading=h.79x1g3qlth40" target=_blank rel=noopener>requirements document</a>
+or jump into our <a href=https://slack.linkerd.io target=_blank rel=noopener>Slack channel</a> and ask some
+questions!</p><hr><p>Linkerd is a community project and is hosted by the
+<a href=https://cncf.io target=_blank rel=noopener>Cloud Native Computing Foundation</a>. If you have feature
+requests, questions, or comments, we&rsquo;d love to have you join our rapidly-growing
+community! Linkerd is hosted on <a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we
+have a thriving community on <a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a>,
+<a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and the
+<a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2020/02/25/multicluster-kubernetes-with-service-mirroring/cover.png alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2020/02/25/multicluster-kubernetes-with-service-mirroring/>Multicluster Kubernetes with Service Mirroring</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Feb 25, 2020 • 10 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

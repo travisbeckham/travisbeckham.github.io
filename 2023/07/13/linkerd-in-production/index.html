@@ -1,0 +1,184 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Workshop recap: Running Linkerd in Production | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="This blog post is based on a workshop that I delivered at Buoyant’s
+Service Mesh Academy. If this seems
+interesting, check out the
+full recording!
+Linkerd is used in a great many demanding production environments around the
+world. Let&rsquo;s take a look at what separates demo environments from production,
+and what you need to know to be able to run Linkerd in production and still
+sleep through the night.
+Demo vs Production
+Let&rsquo;s start by clarifying the really important differences between demos and
+production. These honestly have less to do with the technology itself, and more
+to do with the impact of failures."><meta property="og:url" content="https://travisbeckham.github.io/2023/07/13/linkerd-in-production/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Workshop recap: Running Linkerd in Production"><meta property="og:description" content="This blog post is based on a workshop that I delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+Linkerd is used in a great many demanding production environments around the world. Let’s take a look at what separates demo environments from production, and what you need to know to be able to run Linkerd in production and still sleep through the night.
+Demo vs Production Let’s start by clarifying the really important differences between demos and production. These honestly have less to do with the technology itself, and more to do with the impact of failures."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-07-13T00:00:00+00:00"><meta property="article:modified_time" content="2023-07-13T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/07/13/linkerd-in-production/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/07/13/linkerd-in-production/cover.jpg"><meta name=twitter:title content="Workshop recap: Running Linkerd in Production"><meta name=twitter:description content="This blog post is based on a workshop that I delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+Linkerd is used in a great many demanding production environments around the world. Let’s take a look at what separates demo environments from production, and what you need to know to be able to run Linkerd in production and still sleep through the night.
+Demo vs Production Let’s start by clarifying the really important differences between demos and production. These honestly have less to do with the technology itself, and more to do with the impact of failures."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/07/13/linkerd-in-production/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-07-13T00:00:00Z","dateModified":"2023-07-13T00:00:00Z","headline":"Workshop recap: Running Linkerd in Production","image":"https://travisbeckham.github.io/2023/07/13/linkerd-in-production/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Workshop recap: Running Linkerd in Production</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>Jul 13, 2023 • 11 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/07/13/linkerd-in-production/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><em>This blog post is based on a workshop that I delivered at Buoyant’s
+<a href=https://buoyant.io/service-mesh-academy target=_blank rel=noopener>Service Mesh Academy</a>. If this seems
+interesting, check out the
+<a href=https://buoyant.io/service-mesh-academy/linkerd-in-production-101 target=_blank rel=noopener>full recording</a>!</em></p><p>Linkerd is used in a great many demanding production environments around the
+world. Let&rsquo;s take a look at what separates demo environments from production,
+and what you need to know to be able to run Linkerd in production and still
+sleep through the night.</p><h2 id=demo-vs-production>Demo vs Production</h2><p>Let&rsquo;s start by clarifying the really important differences between demos and
+production. These honestly have less to do with the technology itself, and more
+to do with the impact of failures.</p><p>Demo environments are often running in local clusters, and they rarely last very
+long. They tend not to really prioritize security and careful configuration
+management: after all, if anything goes wrong with the demo environment, usually
+it&rsquo;s only a minor irritation. They often just aren&rsquo;t worth a lot of effort, and
+the way they&rsquo;re created and set up reflects that.</p><p>Production is different, though. In production, you&rsquo;re likely to be using a
+relatively long-lived cluster from a cloud provider, and downtime is likely to
+affect your users and your business. Production places a premium on <em>stability</em>:
+you don&rsquo;t want surprises and you don&rsquo;t want downtime. In turn, this means
+security is much more important in production, and it also means that you really
+don&rsquo;t want anyone changing things in the production environment in an
+uncontrolled way.</p><h2 id=productionalization-checklist>Productionalization Checklist</h2><p>Given that background, let&rsquo;s take a look at a checklist for Linkerd in
+production:</p><ol><li>Think about certificates and the CNI.</li><li>Put configuration in version control.</li><li>Run in high availability mode.</li><li>Use your own image registry.</li><li>Understand how to install and upgrade Linkerd.</li><li>Lock down access wherever you can.</li><li>Set up monitoring and alerting.</li><li>Understand how to debug Linkerd.</li></ol><p>You&rsquo;ll note that most of these have nothing to do with your application, but
+instead are dealing with broad recommendations for how you set up and run
+Linkerd to make day-to-day operations as trouble-free as possible.</p><h3 id=1-think-carefully-about-certificates-and-the-cni>1. Think carefully about certificates and the CNI</h3><p>These two things are at the top of the list because they&rsquo;re the basis on which a
+lot of the rest of Linkerd functions, so it&rsquo;s a great idea to decide how you
+want to approach them before installing Linkerd. (You can still change them
+after the fact, but you&rsquo;ll need to be careful to avoid downtime.)</p><h4 id=certificates>Certificates</h4><p>Expired certificates are <strong>the</strong> most common reason for a production Linkerd
+installation to take downtime, which is a shame because they&rsquo;re 100% avoidable.
+There are two major things to consider here:</p><ul><li><p>Ideally, <strong>your trust anchor secret key should not be stored on your cluster
+at all</strong>. Linkerd only needs access to the public key of the trust anchor, and
+keeping the private key out of the cluster makes it that much harder for
+evildoers to find it and use it.</p></li><li><p>You should absolutely have automated certificate rotation for the Linkerd
+issuer certs at a minimum. <strong>We recommend cert-manager for automated
+rotation</strong>: it&rsquo;s worked well for us, and it provides several mechanisms that
+help you with the goal of keeping the trust anchor secret key out of the
+cluster.</p></li></ul><p>There&rsquo;s a
+<a href="https://www.youtube.com/watch?v=TC665X-uzcQ" target=_blank rel=noopener>Cloud Native Live on certificate management with Linkerd</a>
+where we dive into the details here, but the basic takeaway is that it&rsquo;s a
+really good idea to use cert-manager to keep your trust anchor secret outside
+the cluster, and to fully automate rotating the issuer certificates every 48
+hours or so. The combination can let you sidestep a lot of production issues
+while still keeping things safe.</p><h4 id=the-cni>The CNI</h4><p>The <strong>C</strong>ontainer <strong>N</strong>etworking <strong>I</strong>nterface is the chunk of Kubernetes that
+Linkerd needs to interact with in order to configure the network for mesh
+routing. Linkerd can do this either with an init container, or with the Linkerd
+CNI plugin. We recommend <strong>using the init container if you can</strong>.</p><p>You can get a lot more detail in the
+<a href=https://buoyant.io/service-mesh-academy/what-really-happens-at-startup target=_blank rel=noopener>SMA on the Linkerd startup process</a>,
+but our reasoning here is that though the CNI plugin is flexible and powerful,
+there are also more ways that things can go sideways when using it, so we prefer
+the init container. On the other hand, if your Kubernetes runtime doesn&rsquo;t allow
+providing Linkerd with the NET_ADMIN and NET_RAW capabilities, the init
+container won&rsquo;t work and the CNI plugin is the way to go.</p><h3 id=2-put-configuration-in-version-control>2. Put configuration in version control</h3><p>Another common source of problems in production – in general, not just with
+Linkerd – is uncontrolled changes made to a production cluster. If you don&rsquo;t
+know what&rsquo;s actually running in the cluster, keeping it running correctly is
+impossible. Fortunately, it&rsquo;s not hard to sidestep this issue: just <strong>put your
+configuration under version control</strong> using Git or some similar tool.</p><p>Note that this is not to say that you must fully adopt GitOps (though you should
+at least consider it). While GitOps can be incredibly useful (there&rsquo;s a whole
+<a href=https://buoyant.io/service-mesh-academy/real-world-gitops-with-flagger-and-linkerd target=_blank rel=noopener>SMA on GitOps and Linkerd</a>),
+the fact is that you can get an enormous amount of benefit just by using Helm
+and checking your <code>values.yaml</code> into Git.</p><p>(Why Helm? Well, it&rsquo;s very unlikely that the YAML that we ship with Linkerd will
+be exactly right for your deployment. You should expect to need to make changes
+&ndash; and in many real-world scenarios, making those changes in a Helm
+<code>values.yaml</code> which you then keep in version control is much simpler than
+maintaining patches or <code>kustomization</code>s for them.)</p><h3 id=3-run-in-high-availability-mode>3. Run in high availability mode</h3><p>Linkerd&rsquo;s <strong>H</strong>igh <strong>A</strong>vailability (HA) mode changes the way Linkerd is
+deployed to eliminate single points of failure and ensure maximum availability
+for your cluster, so <strong>definitely use HA mode for production use</strong>.</p><p>In HA mode, Linkerd deploys three replicas of each control plane component to
+ensure that no single control-plane component failure can take down your entire
+control plane. It also provides resource limits for the control-plane components
+to help out the Kubernetes scheduler; you are strongly encouraged to check the
+resource limits and make sure that they are appropriate for your application.</p><p>HA mode also adds a strict requirement that Linkerd&rsquo;s proxy-injector be fully
+operational before any other pods can start, in order to prevent early pods from
+accidentally starting without mTLS. This is implemented using an admission
+webhook, so it is <em>critical</em> that you annotate the <code>kube-system</code> namespace with
+<code>config.linkerd.io/admission-webhooks=disabled</code>: this will prevent a deadlock
+where Linkerd is waiting for Kubernetes to be fully running, but Kubernetes is
+waiting for the Linkerd admission webhook!</p><p>Finally, note that HA mode <em>requires</em> each of the three control-plane replicas
+run on different Nodes, which means that your cluster must have at least three
+Nodes to use HA mode. (This is the reason why HA mode isn&rsquo;t the default: it
+won&rsquo;t work on single-Node demo clusters.)</p><p>For more details about Linkerd&rsquo;s HA mode, check out the
+<a href=https://linkerd.io/2.13/features/ha/ target=_blank rel=noopener>Linkerd HA mode documentation</a>.</p><h3 id=4-use-your-own-image-registry>4. Use your own image registry</h3><p>Another critical consideration when preparing Linkerd for production use is
+managing your images. Linkerd&rsquo;s released images are published to a single
+registry, the GitHub Container Registry (GHCR). While this usually works just
+fine, it means that Pods won&rsquo;t be able to start if GHCR becomes unavailable or
+unreachable.</p><p>The simplest way to mitigate this risk is to <strong>run your own image registry</strong>,
+putting the availability of your images under your direct control. This often
+sounds daunting, but it&rsquo;s actually not that hard: the Linkerd
+<a href=https://linkerd.io/2.13/tasks/using-a-private-docker-repository/ target=_blank rel=noopener>private Docker registry documentation</a>
+covers exactly how get things set up.</p><h3 id=5-understand-how-to-install-and-upgrade-linkerd>5. Understand how to install and upgrade Linkerd</h3><p>For production use, we recommend using Helm to install Linkerd, and we recommend
+using HA mode. This makes it critical to understand how to actually use Helm for
+installation and upgrades.</p><h4 id=installation>Installation</h4><p>You&rsquo;ll be using Helm to install Linkerd in HA mode, so you&rsquo;ll need to <strong>grab the
+<code>values-ha.yaml</code> file from the Helm chart</strong>: run
+<code>helm fetch --untar linkerd/linkerd-control-plane</code>, then copy
+<code>linkerd-control-plane/values-ha.yaml</code> into your version control system.
+<code>values-ha.yaml</code> shouldn&rsquo;t need any edits, but it&rsquo;s worth a read to make sure of
+that.</p><p>After you&rsquo;ve vetted <code>values-ha.yaml</code>, you&rsquo;ll run <code>helm install</code> with the
+<code>-f path/to/your/values-ha.yaml</code> option. The
+<a href=https://linkerd.io/2/tasks/install-helm/ target=_blank rel=noopener>Linkerd documentation on installing with Helm</a>
+goes into much more detail here.</p><h4 id=upgrades>Upgrades</h4><p>Linkerd upgrades are usually straightforward, but always read the release notes
+and always test in non-production environments. <strong>Upgrade the control plane
+first</strong> with <code>helm upgrade</code>, then gradually roll out data-plane upgrades by
+restarting workloads and allowing the control plane to inject the new version of
+the proxy. (There are more details on this process in the
+<a href=https://linkerd.io/2/tasks/upgrade/ target=_blank rel=noopener>Linkerd upgrade documentation</a>).</p><p>Order matters here: doing the control plane first is always supported, as the
+data plane is designed to handle the temporary skew – but <strong>don&rsquo;t skip major
+versions</strong> when upgrading. Going from 2.10.2 to 2.11.1 to 2.12.3 is fine; going
+directly from 2.10.2 to 2.12.3 is not supported.</p><p>It&rsquo;s also worth pointing out the <code>reuse-values</code> and <code>reset-values</code> Helm flags.
+Basically, <code>reuse-values</code> tells Helm to use the values from your previous
+installation, where <code>reset-values</code> tells Helm to use values from the new chart
+instead. (Command-line overrides take effect in all cases.)</p><p>(Hopefully you&rsquo;ll never need to downgrade Linkerd, but if you do, the process is
+exactly the same as an upgrade &ndash; control plane first, then data plane. And
+since Helm doesn&rsquo;t have a specific command for it, you actually get it done by
+running <code>helm upgrade --version</code> with an older version. Having your
+configuration in version control really shines in this case, too.)</p><h3 id=6-lock-down-access-wherever-you-can>6. Lock down access wherever you can</h3><p>Once installed, pay attention to access controls. In a Linkerd mesh, each of the
+several microservices that work together to form your cloud-native application
+has its own identity, which permits Linkerd to provide very fine-grained
+authorization controls for communications between microservices. For instance,
+does the microservice that serves your UI&rsquo;s HTML really need access to check a
+user&rsquo;s bank balance? Most likely not.</p><p>You can improve the security of your application as a whole by following the
+principle of least privilege: <strong>don&rsquo;t allow access that microservices don&rsquo;t
+need</strong>. There&rsquo;s an
+<a href=https://buoyant.io/service-mesh-academy/a-deep-dive-into-route-based-policy target=_blank rel=noopener>SMA on policy management with Linkerd</a>
+which goes into great detail on this, but the simplest approach is to restrict
+access to entire namespaces initially, then progressively add routes as
+necessary. A useful tool to start with is the <code>linkerd viz profile --tap</code>
+command, which can generate a ServiceProfile based on observed traffic.</p><h3 id=7-set-up-monitoring-and-alerting>7. Set up monitoring and alerting</h3><p>The last piece that you&rsquo;ll definitely need is efficient monitoring and alerting.
+<strong>Do not use the Prometheus installed by <code>linkerd viz</code> in production</strong>: the
+right home for your production metrics is off-cluster, which might mean using
+<a href=https://buoyant.io/cloud target=_blank rel=noopener>Buoyant Cloud</a>, a metrics provider like
+<a href=https://datadog.io target=_blank rel=noopener>Datadog</a>, or your own
+<a href=https://linkerd.io/2.13/tasks/external-prometheus/ target=_blank rel=noopener>external Prometheus</a>.</p><p>You should <strong>set up alerts for the both control plane and the data plane</strong>. Your
+control plane components should basically always show 100% success: anything
+lower should be investigated. Alerts for latency and resource usage can be
+extremely helpful, but you&rsquo;ll need to determine the limits emperically for your
+situation.</p><p>Finally, don&rsquo;t forget to <strong>set up alerts for TLS certificate expirations</strong>! This
+is a simple measure that can save you an enormous amount of pain.</p><h3 id=8-understand-how-to-debug-linkerd>8. Understand how to debug Linkerd</h3><p>With a little luck, you&rsquo;ll never need to debug Linkerd, but if you do, it&rsquo;s
+important to remember that at its core, <strong>debugging Linkerd is just debugging a
+Kubernetes workload</strong>, albeit a complex one. This means that the usual <code>kubectl</code>
+commands are still helpful, as are several commands from the <code>linkerd</code> CLI:</p><ul><li><code>kubectl events</code>: Use this for any Pod state other than Running.</li><li><code>kubectl logs</code>: This command will allow you to view container logs.</li><li><code>kubectl get</code>: This shows status information, particularly relevant for
+Gateway API resources.</li><li><code>linkerd check</code>: This command validates that Linkerd is functioning correctly.</li><li><code>linkerd diagnostics proxy-metrics po/&lt;pod-name> -n linkerd</code>: This provides
+metrics for the proxy running in the specified pod.</li><li><code>linkerd viz tap</code>: This helps observe requests as they flow through your
+application.</li><li><code>linkerd identity</code>: This provides information about the mTLS certificates of a
+workload.</li><li><code>linkerd authz</code> and <code>linkerd diagnostics policy</code>: These are new commands
+introduced in version 2.11 and 2.13, respectively, and are helpful for policy
+troubleshooting.</li></ul><p>If you&rsquo;re looking into the logs, you might need to set the log level higher.
+This gets a little complex:</p><ul><li>For the proxies and the controllers in the control plane, you can change the
+log level globally by editing the <code>logLevel</code> values found in the Helm chart.</li><li>For the proxy, you can annotate individual workloads or namespaces, for
+example <code>config.linkerd.io/proxy-log-level: warn,linkerd2_proxy=trace</code>. See
+the
+<a href=https://linkerd.io/2.13/tasks/modifying-proxy-log-level/ target=_blank rel=noopener>documentation on setting the proxy&rsquo;s log level</a>
+for more options.</li><li>For individual controllers, you can modify the
+<a href=https://github.com/linkerd/linkerd2/blob/main/charts/linkerd-control-plane/templates/ target=_blank rel=noopener>Helm templates</a>
+for the desired controller and reinstall.</li><li>Note that the Policy controller and the proxy use Rust levels (like
+<code>linkerd=info,warn</code>), while others use Golang formats (like <code>error</code>).</li></ul><p>Last but not least, there&rsquo;s the Linkerd debug sidecar, which comes equipped with
+<code>tshark</code>, <code>tcpdump</code>, <code>lsof</code>, and <code>iproute2</code>. If your runtime allows it, it can
+be very useful for debugging: check out the
+<a href=https://linkerd.io/2/tasks/using-the-debug-container target=_blank rel=noopener>documentation on using the debug sidecar</a>
+for the details here.</p><h2 id=linkerd-in-production>Linkerd in Production</h2><p>There&rsquo;s a lot of text and references above, but what you&rsquo;ll find going through
+it all is that it&rsquo;s really not difficult to get a rock-solid Linkerd
+installation running demanding real-world production environments. Linkerd&rsquo;s
+ability to easily provide security, reliability, and observability, while
+maintaining operational simplicity and performance, make a world of difference
+in this kind of application.</p><p>If you found this interesting, check out the Service Mesh Academy workshop on
+<a href=https://buoyant.io/service-mesh-academy/linkerd-in-production-101 target=_blank rel=noopener>Linkerd in Production 101: updated for 2.13</a>
+for hands-on exploration of everything I&rsquo;ve talked about here! And, as always,
+feedback is always welcome &ndash; you can find me as <code>@flynn</code> on the
+<a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a>.</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

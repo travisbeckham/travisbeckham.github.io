@@ -1,0 +1,137 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Service mesh 2022 recap: Linkerd adoption doubled, and what we learned about
+eBPF, the Gateway API, and more | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="It&rsquo;s been a good year for Linkerd. Although much of the software industry has
+struggled through an economic downturn, Linkerd adoption has only been growing.
+In fact, log metrics show that the number of stable Kubernetes clusters
+running Linkerd doubled in 2022. Linkerd may be the only service mesh to
+achieve graduation status from the CNCF, but it&rsquo;s certainly not slowing down!
+Where did this growth come from, and why now? Based on conversations with new
+adopters throughout the year, our theory is this: the service mesh got a bad rap
+early on, thanks to extreme levels of hype coupled with the relative immaturity
+and complexity of the most-hyped projects. Early adopters decided to hold off
+until the dust settled. Now they&rsquo;re back—and seeing what happened the first
+time, they&rsquo;re looking for an option that won&rsquo;t leave them holding the proverbial
+bag of operational complexity."><meta property="og:url" content="https://travisbeckham.github.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Service mesh 2022 recap: Linkerd adoption doubled, and what we learned about
+eBPF, the Gateway API, and more"><meta property="og:description" content="It’s been a good year for Linkerd. Although much of the software industry has struggled through an economic downturn, Linkerd adoption has only been growing. In fact, log metrics show that the number of stable Kubernetes clusters running Linkerd doubled in 2022. Linkerd may be the only service mesh to achieve graduation status from the CNCF, but it’s certainly not slowing down!
+Where did this growth come from, and why now? Based on conversations with new adopters throughout the year, our theory is this: the service mesh got a bad rap early on, thanks to extreme levels of hype coupled with the relative immaturity and complexity of the most-hyped projects. Early adopters decided to hold off until the dust settled. Now they’re back—and seeing what happened the first time, they’re looking for an option that won’t leave them holding the proverbial bag of operational complexity."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2022-12-28T00:00:00+00:00"><meta property="article:modified_time" content="2022-12-28T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/cover.jpg"><meta name=twitter:title content="Service mesh 2022 recap: Linkerd adoption doubled, and what we learned about
+eBPF, the Gateway API, and more"><meta name=twitter:description content="It’s been a good year for Linkerd. Although much of the software industry has struggled through an economic downturn, Linkerd adoption has only been growing. In fact, log metrics show that the number of stable Kubernetes clusters running Linkerd doubled in 2022. Linkerd may be the only service mesh to achieve graduation status from the CNCF, but it’s certainly not slowing down!
+Where did this growth come from, and why now? Based on conversations with new adopters throughout the year, our theory is this: the service mesh got a bad rap early on, thanks to extreme levels of hype coupled with the relative immaturity and complexity of the most-hyped projects. Early adopters decided to hold off until the dust settled. Now they’re back—and seeing what happened the first time, they’re looking for an option that won’t leave them holding the proverbial bag of operational complexity."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2022-12-28T00:00:00Z","dateModified":"2022-12-28T00:00:00Z","headline":"Service mesh 2022 recap: Linkerd adoption doubled, and what we learned about\neBPF, the Gateway API, and more","image":"https://travisbeckham.github.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Service mesh 2022 recap: Linkerd adoption doubled, and what we learned about
+eBPF, the Gateway API, and more</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Dec 28, 2022 • 7 min read</div></div></div></div><div class=blog-post__cover><img src=/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>It&rsquo;s been a good year for Linkerd. Although much of the software industry has
+struggled through an economic downturn, Linkerd adoption has only been growing.
+In fact, log metrics show that <strong>the number of stable Kubernetes clusters
+running Linkerd doubled in 2022</strong>. Linkerd may be the only service mesh to
+achieve graduation status from the CNCF, but it&rsquo;s certainly not slowing down!</p><p>Where did this growth come from, and why now? Based on conversations with new
+adopters throughout the year, our theory is this: the service mesh got a bad rap
+early on, thanks to extreme levels of hype coupled with the relative immaturity
+and complexity of the most-hyped projects. Early adopters decided to hold off
+until the dust settled. Now they&rsquo;re back—and seeing what happened the first
+time, they&rsquo;re looking for an option that won&rsquo;t leave them holding the proverbial
+bag of operational complexity.</p><p>Naturally they turn to Linkerd, which is unique in the service mesh space for
+its simplicity. Much of Linkerd&rsquo;s advantage comes down to its data plane.
+Linkerd is the only service mesh to eschew Envoy and focus instead on a
+dedicated sidecar &ldquo;micro-proxy&rdquo;. In 2018, this was a controversial decision; in
+2022, this approach continued to pay off in spades. While other projects spent
+time building workarounds for the complexity and resource consumption of their
+data plane, Linkerd instead focused on shipping powerful features like
+<a href=https://linkerd.io/2022/03/09/announcing-automated-multi-cluster-failover-for-kubernetes/ target=_blank rel=noopener>multi-cluster
+failover</a>
+and <a href=https://buoyant.io/blog/announcing-linkerd-2-12 target=_blank rel=noopener>full L7 authorization policy based on the Gateway
+API</a>.</p><p>But 2022 also didn&rsquo;t turn out exactly how we thought it would. Even us grizzled
+service mesh veterans can still learn some lessons, and we navigated some real
+surprises through the year. Here are a few the things that surprised us in 2022.</p><h2 id=surprise-1-kubernetess-gateway-api-is-a-great-match-for-the-service-mesh>Surprise #1: Kubernetes&rsquo;s Gateway API is a great match for the service mesh</h2><p>By far our biggest surprise of the year was the Gateway API, which actually
+caused us to change our plans mid-course. The Gateway API hit beta in Kubernetes
+mid-year just as we were finalizing Linkerd&rsquo;s L7 authorization feature. When we
+took a deeper look at the project, we realized a couple things:</p><ol><li>It already solved a major problem we were tackling in Linkerd 2.12: how do
+you describe a class of HTTP traffic (e.g. &ldquo;everything starting with /foo/&rdquo;
+or &ldquo;everything with this header&rdquo;) in a comprehensive, composable, yet
+Kubernetes-y way?</li><li>Unlike the CRDs we had reluctantly planned to add to Linkerd to do this, the
+Gateway API resources were already part of Kubernetes.</li><li>Its design was good. Really good. While it was originally designed to handle
+ingress configuration, the core primitives were flexible and composable
+enough that it actually worked for the service mesh use case as well.</li></ol><p>So we scuttled our original plans and pivoted to <a href=https://buoyant.io/blog/linkerd-and-the-gateway-api target=_blank rel=noopener>adopt the Gateway API as the
+core configuration mechanism for Linkerd&rsquo;s authorization
+policies</a>. Even though this
+would delay the 2.12 release by a few months, we knew this was the right thing
+for Linkerd&rsquo;s adopters.</p><p>The decision is paying off already. In the upcoming 2.13 release, we are
+leveraging Gateway API resource types for features like header-based routing and
+configurable circuit-breaking. Linkerd is also participating in the <a href=https://gateway-api.sigs.k8s.io/contributing/gamma/ target=_blank rel=noopener>GAMMA
+initiative</a>, a project in
+the Gateway API to better capture the service mesh use cases.</p><p>Further reading: <a href=https://buoyant.io/blog/linkerd-and-the-gateway-api target=_blank rel=noopener>Linkerd and the Gateway
+API</a>.</p><h2 id=surprise-2-ebpf-was-an-optimization-but-not-a-game-changer>Surprise #2: eBPF was an optimization but not a game changer</h2><p>When the buzz around eBPF for service meshes came to a head early in the year,
+we decided to take a deeper look. What we found was less compelling than we
+hoped. While eBPF can streamline some basic service mesh tasks such as
+forwarding raw TCP connections, its fundamental inability to handle HTTP/2,
+mTLS, or other L7 tasks without a userspace component meant that it would not
+provide a radical change—even with eBPF, a service mesh would still need L7
+proxies somewhere on the cluster.</p><p>The much-touted &ldquo;sidecar-free eBPF service mesh&rdquo; model, especially, felt like <a href=https://buoyant.io/blog/ebpf-sidecars-and-the-future-of-the-service-mesh target=_blank rel=noopener>a
+major step backwards in operability and
+security</a>.
+By shifting that logic into per-host Envoy proxies that mix both networking
+concerns and TLS key material for everything on the node, they defeat much of
+the point of why we&rsquo;re containerizing things in the first place. Nothing about
+eBPF requires a per-host approach, and we were disappointed to see marketing
+material conflating the two.</p><p>In the future we do plan on investigating eBPF as a way to streamline Linkerd&rsquo;s
+L4 featureset, though the prospect of shifting critical code into the kernel,
+where it is significantly harder to debug, observe, and reason about, makes us
+antsy. (Not to mention the <a href=https://pentera.io/blog/the-good-bad-and-compromisable-aspects-of-linux-ebpf/ target=_blank rel=noopener>new and exciting attack vectors that eBPF
+introduces</a>.)</p><p>Overall, we left our eBPF investigation not really convinced about eBPF, but
+more convinced than ever that <em>sidecars</em> continued to be the best model for the
+service mesh for both operational and security reasons.</p><p>Further reading: <a href=https://buoyant.io/blog/ebpf-sidecars-and-the-future-of-the-service-mesh target=_blank rel=noopener>eBPF, sidecars, and the future of the service
+mesh</a>.</p><h2 id=surprise-3-the-ambient-mesh>Surprise #3: The ambient mesh</h2><p>Sidecar-free eBPF service meshes were soon joined by Istio&rsquo;s sidecar-free
+&ldquo;ambient mesh&rdquo; mode, which uses a combination of per-host and per-service
+proxies. Diving into this approach was another learning experience for us, and
+we were heartened to see that here, at least, the security story was better: for
+example, the TLS key material for separate identities was maintained in separate
+processes.</p><p>However, the tradeoff for removing sidecars was steep: a lot of new machinery is
+required, and the result had <a href=https://github.com/istio/istio/tree/experimental-ambient#limitations target=_blank rel=noopener>non-trivial
+limitations</a>
+as well as significant consequences for performance.</p><p>Overall, the vedict was that the improvements in lifecycle management and
+resource consumption don&rsquo;t add up in Linkerd&rsquo;s case. Our sense is that ambient
+mesh is more a solution to the problem of running Envoy at scale than anything
+else.</p><h2 id=non-surprise-1-container-ordering-continues-to-be-a-weak-point-for-kubernetes>Non-surprise #1: container ordering continues to be a weak point for Kubernetes</h2><p>In addition to surprises, we saw some non-surprises in 2022. As in previous
+years, Linkerd adopters continued to struggle with Kubernetes&rsquo;s perennial
+bugbear—lack of control over container ordering. This manifested in a variety
+of ways:</p><ul><li>Sidecar containers that require network access need a way to run after the
+linkerd-init container</li><li>Jobs that terminate need a way to signal this termination to their proxy
+component</li><li>Nodes that restart or are added to an existing cluster need a way to pause
+Linkerd&rsquo;s network initialization until after the CNI layer has initialized</li><li>And so on.</li></ul><p>Each of these is solvable in specific situations, but the general class of
+problem continues to be a nuisance for service mesh adopters and the most
+egregious violation of our principle that the service mesh should be transparent
+to the application. With the infamous <a href=https://github.com/kubernetes/enhancements/issues/753 target=_blank rel=noopener>sidecar
+KEP</a> gone the way of the
+dodo, however, we may have to suffer through a bit longer.</p><p>Although, rumors swirl about another KEP&mldr;</p><blockquote class=twitter-tweet><p lang=en dir=ltr>That's the one, but after MUCH talking I think we now have a decent picture of how to do a form of it that everyone can accept. :)</p>&mdash; Tim Hockin (thockin.yaml) (@thockin) <a href="https://twitter.com/thockin/status/1591198130049257473?ref_src=twsrc%5Etfw">November 11, 2022</a></blockquote><script async src=https://platform.twitter.com/widgets.js></script><p>Further reading: <a href=https://linkerd.io/2022/12/01/what-really-happens-at-startup-linkerd-init-containers-the-cni-and-more/ target=_blank rel=noopener>What really happens at startup: Linkerd, init containers, the
+CNI, and
+more</a>.</p><h2 id=non-surprise-2-security-continues-to-be-a-top-driver-of-linkerd-adoption>Non-surprise #2: Security continues to be a top driver of Linkerd adoption</h2><p>As in previous years, the primary driver of Linkerd adoption continued to be
+security. Linkerd&rsquo;s <a href=https://linkerd.io/2.12/features/automatic-mtls/ target=_blank rel=noopener>zero-config mutual
+TLS</a> has always been a major
+draw for the project and the introduction of <a href=https://buoyant.io/blog/announcing-linkerd-2-12 target=_blank rel=noopener>L7 authorization
+policy</a> this year rounded out
+Linkerd&rsquo;s zero trust featureset.</p><p>We were also heartened to see signs of growing maturity in the market. A few
+years ago, &ldquo;we need encryption in transit&rdquo; was the primary justification for
+adopting mTLS. In 2022, we heard many adopters instead say, &ldquo;yes we need
+encryption in transit, but also authentication with true workload identity, and
+zero-trust authorization at every pod&rdquo;. It&rsquo;s no secret that zero trust is
+gaining real traction, and the <a href=https://buoyant.io/resources/zero-trust-in-kubernetes-with-linkerd target=_blank rel=noopener>sidecar-based service mesh is nothing if not a
+direct implementation of zero trust
+principles</a>.
+Score another point for the sidecar model!</p><p>As usual, we also try to keep our house clean, and Linkerd <a href=https://linkerd.io/2022/06/27/announcing-the-completion-of-linkerds-2022-security-audit/ target=_blank rel=noopener>completed its annual
+security audit with flying
+colors</a>.</p><h3 id=whats-coming-up-for-service-meshes-in-2023>What&rsquo;s coming up for service meshes in 2023?</h3><p>Next year promises to be another banner year for Linkerd. We&rsquo;ve got some
+incredibly exciting things planned, ranging from the upcoming 2.13 release with
+header-based routing and circuit breaking to a few other killer ideas we&rsquo;re
+keeping under wraps for now. As always, we&rsquo;ll stay laser-focused on keeping
+Linkerd simple, light, and secure.</p><p>Want to get involved with the CNCF&rsquo;s first and only graduation-tier service
+mesh? It&rsquo;s a great time to join the project.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a <a href=/2021/07/28/announcing-cncf-graduation/>graduated project</a> of the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is <a href=https://linkerd.io/2019/10/03/linkerds-commitment-to-open-governance/ target=_blank rel=noopener>committed to
+open
+governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p><p>(<em>Photo by <a href="https://unsplash.com/@zhenhappy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Pan Xiaozhen</a>
+on
+<a href="https://unsplash.com/?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a>.</em>)</p></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

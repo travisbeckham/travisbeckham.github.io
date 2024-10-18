@@ -1,0 +1,193 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Multicluster Kubernetes with Service Mirroring | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="
+  
+    
+      
+      
+        
+      
+      
+        Note
+      
+    
+  
+  
+    Linkerd 2.8 has been released and implements the architecture
+described here. Check out the
+release blog post and get started on your
+own clusters!
+  
+
+
+
+In our earlier post,
+Architecting for Multicluster Kubernetes,
+we outlined three requirements for building a simple yet resilient multicluster
+approach to Kubernetes: supporting hierarchical networks, preserving
+independence of cluster state, and not introducing a shared control plane."><meta property="og:url" content="https://travisbeckham.github.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Multicluster Kubernetes with Service Mirroring"><meta property="og:description" content=" Note Linkerd 2.8 has been released and implements the architecture described here. Check out the release blog post and get started on your own clusters! In our earlier post, Architecting for Multicluster Kubernetes, we outlined three requirements for building a simple yet resilient multicluster approach to Kubernetes: supporting hierarchical networks, preserving independence of cluster state, and not introducing a shared control plane."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2020-02-25T00:00:00+00:00"><meta property="article:modified_time" content="2020-02-25T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/cover.png"><meta name=twitter:title content="Multicluster Kubernetes with Service Mirroring"><meta name=twitter:description content=" Note Linkerd 2.8 has been released and implements the architecture described here. Check out the release blog post and get started on your own clusters! In our earlier post, Architecting for Multicluster Kubernetes, we outlined three requirements for building a simple yet resilient multicluster approach to Kubernetes: supporting hierarchical networks, preserving independence of cluster state, and not introducing a shared control plane."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Thomas Rampelberg","datePublished":"2020-02-25T00:00:00Z","dateModified":"2020-02-25T00:00:00Z","headline":"Multicluster Kubernetes with Service Mirroring","image":"https://travisbeckham.github.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Multicluster Kubernetes with Service Mirroring</h1><div class=blog-post-meta><div class=blog-post-meta__body><div class=blog-post-meta__name>Thomas Rampelberg</div><div class=blog-post-meta__date>Feb 25, 2020 • 10 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><div class="alert alert--info alert--callout"><div class=alert__title><svg class="icon icon--current" viewBox="0 0 24 24"><path d="M13 9H11V7h2m0 10H11V11h2M12 2A10 10 0 002 12 10 10 0 0012 22 10 10 0 0022 12 10 10 0 0012 2z"/></svg><h4>Note</h4></div><div class=alert__content>Linkerd 2.8 has been released and implements the architecture
+described here. Check out the
+<a href=/2020/06/09/announcing-linkerd-2.8/>release blog post</a> and get started on your
+own clusters!</div></div><p>In our earlier post,
+<a href=https://linkerd.io/2020/02/17/architecting-for-multicluster-kubernetes/ target=_blank rel=noopener>Architecting for Multicluster Kubernetes</a>,
+we outlined three requirements for building a simple yet resilient multicluster
+approach to Kubernetes: supporting hierarchical networks, preserving
+independence of cluster state, and not introducing a shared control plane.</p><p>In this post, we&rsquo;ll propose a solution that we believe satisfies these
+constraints, called service mirroring. In keeping with
+<a href=https://linkerd.io/2019/04/29/linkerd-design-principles/ target=_blank rel=noopener>Linkerd&rsquo;s design principle</a>
+of &ldquo;keep it simple&rdquo;, we&rsquo;ve done our best to build this solution in terms of pure
+Kubernetes primitives and to remove any dependencies on Linkerd itself. This
+allows us to keep the operational surface area of any solution as close as
+possible to that of Kubernetes itself. In other words, the mesh should do less,
+not more.</p><p>We&rsquo;re currently actively prototyping this approach and we&rsquo;d love your feedback.
+Read on for details and how you can get involved.</p><h2 id=introduction>Introduction</h2><p>There are many challenges to building an effective multicluster Kubernetes
+architecture, including configuration, monitoring, deployment, and traffic
+management. Of these challenges, we see a service mesh as able to directly
+address three specific areas:</p><ul><li>Observability: a service mesh can provide a unified view of application
+behavior that spans clusters.</li><li>Security: a service mesh can provide guarantees around authentication,
+authorization, and confidentiality to cross-cluster traffic.</li><li>Routing: a service mesh can make it possible and &ldquo;easy&rdquo; for applications in
+one cluster to communicate with applications in another cluster.</li></ul><p>Today, it is possible to build a multicluster setup that accomplishes many of
+these goals by running Linkerd independently across multiple clusters,
+aggregating metrics to an external Prometheus or Thanos, sharing service
+information in DNS, and using cert-manager to rotate certs on cluster Ingress
+controllers. (See our
+<a href=https://docs.google.com/document/d/1yDdd5nC348oNibvFAbxOwHL1dpFAEucpNuox1zcsOFg/edit# target=_blank rel=noopener>Multicluster the Kubernetes Way with Linkerd</a>
+writeup, from which this framing is copied, for more on how to accomplish this.)</p><p>While functional, this approach has several downsides around cross-cluster
+calls. In contrast to in-cluster calls, cross-cluster calls in this approach
+don&rsquo;t have full metrics, do not preserve source identity across the cluster
+boundary, and cannot be the target of traffic splitting. Most crucially, for
+even these partial guarantees to be made, the application itself must
+distinguish between on-cluster and cross-cluster calls. This runs counter to
+Linkerd&rsquo;s goal of not requiring application changes.</p><p>Enter service mirroring.</p><h2 id=service-mirroring>Service Mirroring</h2><p>The goal of the service mirroring is to allow the same guarantees that a service
+mesh like Linkerd provides for in-cluster calls—identity, traffic shifting,
+etc—to also be applied to cross-cluster calls. Service mirroring works, as the
+name suggests, by &ldquo;mirroring&rdquo; service information between clusters. With service
+mirroring in place, the full observability, security, and routing features of
+Linkerd apply uniformly to both in-cluster and cross-cluster calls, and the
+application does not need to distinguish between those situations.</p><p>The service mirror is a Kubernetes Operator. Once installed, it mirrors a remote
+cluster’s services locally to provide service discovery and allow pods to refer
+to the remote services. It also manages configuring endpoints so that traffic
+goes to the correct IP address. (Many more details below.)</p><p>The astute reader may note that nothing in service mirroring actually requires a
+service mesh. Instead, the service mirror is a standalone component that can
+compose well with other projects. This applies not just to the potential users
+of service mirroring, but also to the service mirror itself. For example, the
+service mirror&rsquo;s gateway component is pluggable by design, and can be implemented
+by projects such as <a href=https://www.getambassador.io/ target=_blank rel=noopener>Ambassador</a>,
+<a href=https://github.com/solo-io/gloo target=_blank rel=noopener>Gloo</a> and
+<a href=https://containo.us/traefik/ target=_blank rel=noopener>Traefik</a>.</p><p>To understand how service mirroring works, let&rsquo;s take a quick trip to the
+origins of Kubernetes in the heart of the French Revolution.</p><h2 id=a-tale-of-two-clusters>A Tale of Two Clusters</h2><p>It was the best of times, it was the worst of times. We have two Kubernetes
+clusters that need to send traffic between themselves. Let’s set the scene by
+describing these clusters and picking a specific task.</p><figure><img alt=two-clusters class="img img--max-fill img--center img--rounded" src=/2020/02/25/multicluster-kubernetes-with-service-mirroring/start.svg><figcaption>Two Clusters</figcaption></figure><p>On the left, London has a pod named <code>foo-client</code>. On the right, Paris has a
+service named <code>bar</code>. How do we make it possible for the <code>foo-client</code> pod to make
+requests to the <code>bar</code> service?</p><h2 id=step-1-service-discovery>Step 1: Service Discovery</h2><p>Pods in the London cluster need to send requests to the <code>bar</code> service in Paris.
+Normally, this would be done using the service name. However, <code>bar</code> is on
+another cluster! Let’s copy the service definition from Paris to London.</p><figure><img alt=step-1 class="img img--max-fill img--center img--rounded" src=/2020/02/25/multicluster-kubernetes-with-service-mirroring/step-1.svg><figcaption>Copy Services</figcaption></figure><p>At this point, the <code>bar</code> service has been copied to London. The remote cluster
+name is appended, both to keep from having local collisions as well as allowing
+pods to explicitly opt-in to sending requests off cluster. Immediately, the pods
+in London will be able to start resolving the full service name -
+<code>bar-paris.default.svc.cluster.local</code>. The <code>bar-paris</code> service living in London
+has type <code>ClusterIP</code>. A virtual IP address will be created by London and be used
+as the response to pods resolving the service name for <code>bar-paris</code>.</p><p>By copying services from Paris to London, we are
+<a href=https://linkerd.io/2020/02/17/architecting-for-multicluster-kubernetes/#requirement-ii-maintain-independent-state target=_blank rel=noopener>maintaining independent state</a>
+— one of our requirements. Paris has its own state, London has its own state and
+they are not dependent on each other. If the connectivity between London and
+Paris goes down, service updates will stop. That’s okay though! With
+connectivity failing, traffic can’t flow from London to Paris anyways.</p><p>We won’t be able to send traffic to the destination pods yet, unfortunately. The
+pod selector from <code>bar</code> in Paris won’t match pods in London. In fact, we should
+probably remove the selector just in case. It would be unintentional to have
+traffic we intend to arrive in Paris accidentally end up in London instead.
+Removing the selector lets us abstract the service beyond pods and use a
+different backend.</p><p>Without a selector, the endpoint object cannot be created automatically.
+Kubernetes doesn’t know what to watch as we’ve not given it enough information.
+Having a
+<a href=https://kubernetes.io/docs/concepts/services-networking/service/#services-without-selectors target=_blank rel=noopener>service without a selector</a>
+is something that Kubernetes was designed to work with though! Like all the
+resources in Kubernetes, you can create and manage them yourself. So, if we can
+create an endpoint ourselves and point it somewhere, where should the traffic be
+forwarded?</p><h2 id=step-2-endpoint-juggling>Step 2: Endpoint juggling</h2><p>It would be possible to copy all the endpoints from Paris to London along with
+the service definition. Depending on how many pods are in the service, that
+could be a lot of data! Take a look at
+<a href=https://kubernetes.io/blog/2019/09/18/kubernetes-1-16-release-announcement/#introducing-endpoint-slices target=_blank rel=noopener>EndpointSlices</a>
+to get a feel for just how much bandwidth replicating Endpoints across clusters
+could consume. Even with a solution to this problem, replicating individual pod
+IP addresses wouldn’t
+<a href=https://linkerd.io/2020/02/17/architecting-for-multicluster-kubernetes/#requirement-i-support-hierarchical-networks target=_blank rel=noopener>support hierarchical networks</a>
+— another of our requirements. Instead of moving all this state between
+clusters, let’s introduce a single endpoint that can take care of routing
+traffic to the correct destination.</p><figure><img alt=step-2 class="img img--max-fill img--center img--rounded" src=/2020/02/25/multicluster-kubernetes-with-service-mirroring/step-2.svg><figcaption>Copy Endpoints</figcaption></figure><p>We have introduced a new service in Paris. With a type of <code>LoadBalancer</code>, the
+gateway service will have a load balancer allocated. This load balancer will
+have a public IP address that can forward traffic internally in Paris. We now
+have an answer to the question of where requests from London should be sent to!</p><p>To get everything working, we can now create an Endpoints resource containing
+this public IP address and send traffic there. At this point, requests issued in
+London will resolve to the ClusterIP of <code>bar-paris</code> and get rewritten to the
+public IP address of the gateway service in Paris. If the gateway service’s
+selector targets the same pods as <code>bar</code>, everything would just work at this
+point.</p><p>There are two important problems with our plan so far. Cloud load balancers are
+expensive, public ip addresses are few and far between. Creating an external
+load balancer for every service inside your cluster would quickly run out of ip
+addresses and push costs up to unacceptable levels.</p><p>Perhaps even more critically, if the gateway service points directly to <code>bar</code>, a
+potentially sensitive internal service is now available on the greater internet.
+It would be possible to configure firewall rules to restrict access, but that
+feels pretty fragile. What could multiplex services across a single load
+balancer and limit connectivity to authorized clients?</p><h2 id=step-3-the-gateway>Step 3: The gateway</h2><p>If you guessed that the solution to this problem sounds a lot like an ingress
+controller, you’d be right!
+<a href=https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/ target=_blank rel=noopener>Ingress</a>
+resources allow configuration for the general case. As the ingress spec
+<a href=https://github.com/kubernetes/kubernetes/issues/41881 target=_blank rel=noopener>does not support wildcards</a>,
+it isn’t possible to directly use Ingress resources to do this. Luckily, most
+ingress controllers support this use case! In fact, it is likely that your
+ingress controller of choice can already do wildcards in Kubernetes with a
+little configuration.</p><figure><img alt=step-3 class="img img--max-fill img--center img--rounded" src=/2020/02/25/multicluster-kubernetes-with-service-mirroring/step-3.svg><figcaption>Gateway</figcaption></figure><p>It is now possible to trace the life of a request as it originates in London and
+ends up at the final destination in Paris. Starting out in London, a pod will
+issue a request to <code>bar-paris.default.svc.cluster.local</code>. When the pod queries
+DNS, it will receive the cluster IP for the service that resides in London. On
+connect, the cluster IP will be rewritten to the public IP address of Paris’
+gateway service. London’s pod will then connect to this IP address and have its
+request forwarded to the ingress controller living in Paris. The ingress
+controller can look at the incoming request’s host header and rewrite it to the
+local <code>bar</code> service. After being rewritten, the request can finally reach the
+destination pod, <code>bar-server</code> in Paris.</p><p>Passing requests through a load balancer running in Paris has the added benefit
+of making decisions locally on the cluster instead of remotely. As a local load
+balancer will always have a better picture of what is happening locally, the
+decision can be more optimal than one that originated outside the cluster.
+There’s definitely an extra hop, the introduction of an extra component which
+will end up doing routing in the local cluster does come with some added
+latency. The tradeoff is that multicluster communication is not a special case,
+services are exposed as if they were third party services and the tooling is
+identical between internal and external services.</p><p>As there is no private network in this example, data will traverse the public
+internet. Encrypting all the cross-cluster traffic thus becomes critical.
+Linkerd automatically does mTLS out of the box and takes care of the encryption
+transparently. Sharing a
+<a href=https://en.wikipedia.org/wiki/Root_certificate target=_blank rel=noopener>root certificate</a> between
+clusters allows Linkerd to validate both ends of the connection and encrypt all
+traffic between them. The shared root certificate allows Linkerd’s control plane
+in both clusters to be
+<a href=https://linkerd.io/2020/02/17/architecting-for-multicluster-kubernetes/#requirement-iii-have-an-independent-control-plane target=_blank rel=noopener>completely independent</a>,
+fulfilling the final requirement. While Linkerd automates mTLS, it would be
+possible to configure the gateway to present a wildcard certificate such as
+<code>*.default.svc.cluster.local</code> which clients could then validate. Traffic would
+be encrypted and validated by clients.</p><p>Note that the gateway works for TCP as well as HTTP with a caveat. Arbitrary TCP
+based protocols will not contain the information required for a gateway to
+forward the request to the correct destination. The gateway load balancer could
+map TCP ports, reserving one port for each internal service. As the service and
+endpoints are managed, port rewriting can occur without any requirements to
+clients or services. This naive solution can actually be improved significantly
+by utilizing something like
+<a href=https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation target=_blank rel=noopener>ALPN</a> or
+<a href=https://en.wikipedia.org/wiki/Server_Name_Indication target=_blank rel=noopener>SNI</a> at the TLS layer.
+Unfortunately, these solutions are not generally supported or configurable.</p><p>And that is service mirroring in a nutshell.</p><h2 id=want-to-get-involved>Want to get involved?</h2><p>We’d love your feedback on service mirroring. Please leave us feedback on the
+<a href=https://docs.google.com/document/d/1uzD90l1BAX06za_yie8VroGcoCB8F2wCzN0SUeA3ucw/edit target=_blank rel=noopener>service mirroring design doc</a>.
+You can also email the
+<a href=https://lists.cncf.io/g/cncf-linkerd-dev target=_blank rel=noopener>cncf-linkerd-dev mailing list</a> or
+find us on the <a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd community Slack</a>. We&rsquo;re
+actively prototyping this solution today, and hope to have a functioning
+implementation very soon.</p><hr><p>Linkerd is a community project and is hosted by the
+<a href=https://cncf.io target=_blank rel=noopener>Cloud Native Computing Foundation</a>. If you have feature
+requests, questions, or comments, we&rsquo;d love to have you join our rapidly-growing
+community! Linkerd is hosted on <a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we
+have a thriving community on <a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a>,
+<a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and the
+<a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2020/02/17/architecting-for-multicluster-kubernetes/cover.png alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2020/02/17/architecting-for-multicluster-kubernetes/>Architecting for Multicluster Kubernetes</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Feb 17, 2020 • 6 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

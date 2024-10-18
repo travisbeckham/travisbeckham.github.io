@@ -1,0 +1,120 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Announcing Linkerd 2.10: Extensions, Opaque Ports, Multi-cluster TCP, and
+more! | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="We&rsquo;re very happy to announce the release of Linkerd 2.10, the best Linkerd
+version yet! This release adds pluggable extensions to Linkerd and
+dramatically reduces the default control plane size by moving non-critical
+components into opt-in extensions. The 2.10 release also extends Linkerd&rsquo;s
+seamless, secure multi-cluster support to all TCP connections, not just HTTP.
+Finally, Linkerd 2.10 adds opaque ports as a way of extending Linkerd&rsquo;s
+coverage to certain situations that are incompatible with protocol detection."><meta property="og:url" content="https://travisbeckham.github.io/2021/03/11/announcing-linkerd-2.10/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Announcing Linkerd 2.10: Extensions, Opaque Ports, Multi-cluster TCP, and
+more!"><meta property="og:description" content="We’re very happy to announce the release of Linkerd 2.10, the best Linkerd version yet! This release adds pluggable extensions to Linkerd and dramatically reduces the default control plane size by moving non-critical components into opt-in extensions. The 2.10 release also extends Linkerd’s seamless, secure multi-cluster support to all TCP connections, not just HTTP. Finally, Linkerd 2.10 adds opaque ports as a way of extending Linkerd’s coverage to certain situations that are incompatible with protocol detection."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-03-11T00:00:00+00:00"><meta property="article:modified_time" content="2021-03-11T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/03/11/announcing-linkerd-2.10/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/03/11/announcing-linkerd-2.10/cover.jpg"><meta name=twitter:title content="Announcing Linkerd 2.10: Extensions, Opaque Ports, Multi-cluster TCP, and
+more!"><meta name=twitter:description content="We’re very happy to announce the release of Linkerd 2.10, the best Linkerd version yet! This release adds pluggable extensions to Linkerd and dramatically reduces the default control plane size by moving non-critical components into opt-in extensions. The 2.10 release also extends Linkerd’s seamless, secure multi-cluster support to all TCP connections, not just HTTP. Finally, Linkerd 2.10 adds opaque ports as a way of extending Linkerd’s coverage to certain situations that are incompatible with protocol detection."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/03/11/announcing-linkerd-2.10/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2021-03-11T00:00:00Z","dateModified":"2021-03-11T00:00:00Z","headline":"Announcing Linkerd 2.10: Extensions, Opaque Ports, Multi-cluster TCP, and\nmore!","image":"https://travisbeckham.github.io/2021/03/11/announcing-linkerd-2.10/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Announcing Linkerd 2.10: Extensions, Opaque Ports, Multi-cluster TCP, and
+more!</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Mar 11, 2021 • 5 min read</div></div></div></div><div class=blog-post__cover><img src=/2021/03/11/announcing-linkerd-2.10/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>We&rsquo;re very happy to announce the release of Linkerd 2.10, the best Linkerd
+version yet! This release adds pluggable <em>extensions</em> to Linkerd and
+dramatically reduces the default control plane size by moving non-critical
+components into opt-in extensions. The 2.10 release also extends Linkerd&rsquo;s
+seamless, secure multi-cluster support to all TCP connections, not just HTTP.
+Finally, Linkerd 2.10 adds <em>opaque ports</em> as a way of extending Linkerd&rsquo;s
+coverage to certain situations that are incompatible with protocol detection.</p><p>This release includes a lot of hard work from over 50 contributors. A special
+thank you to <a href=https://github.com/cypherfox target=_blank rel=noopener>Lutz Behnke</a>, <a href=https://github.com/DaspawnW target=_blank rel=noopener>Björn
+Wenzel</a>, <a href=https://github.com/fpetkovski target=_blank rel=noopener>Filip
+Petkovski</a>, <a href=https://github.com/glitchcrab target=_blank rel=noopener>Simon
+Weald</a>,
+<a href=https://github.com/GMarkfjard target=_blank rel=noopener>GMarkfjard</a>, <a href=https://github.com/hodbn target=_blank rel=noopener>hodbn</a>,
+<a href=https://github.com/hs0210 target=_blank rel=noopener>Hu Shuai</a>, <a href=https://github.com/jimil749 target=_blank rel=noopener>Jimil
+Desai</a>, <a href=https://github.com/jiraguha target=_blank rel=noopener>jiraguha</a>,
+<a href=https://github.com/joakimr-axis target=_blank rel=noopener>Joakim Roubert</a>, <a href=https://github.com/jsoref target=_blank rel=noopener>Josh
+Soref</a>, <a href=https://github.com/kellycampbell target=_blank rel=noopener>Kelly
+Campbell</a>, <a href=https://github.com/mateiidavid target=_blank rel=noopener>Matei
+David</a>, <a href=https://github.com/mayankshah1607 target=_blank rel=noopener>Mayank
+Shah</a>, <a href=https://github.com/mgoltzsche target=_blank rel=noopener>Max
+Goltzsche</a>, <a href=https://github.com/mhulscher target=_blank rel=noopener>Mitch
+Hulscher</a>, <a href=https://github.com/mo4islona target=_blank rel=noopener>Eugene
+Formanenko</a>, <a href=https://github.com/n-oden target=_blank rel=noopener>Nathan J
+Mehl</a>, <a href=https://github.com/nlamirault target=_blank rel=noopener>Nicolas
+Lamirault</a>, <a href=https://github.com/oleh-ozimok target=_blank rel=noopener>Oleh
+Ozimok</a>, <a href=https://github.com/piyushsingariya target=_blank rel=noopener>Piyush
+Singariya</a>, <a href=https://github.com/pradeepnnv target=_blank rel=noopener>Naga Venkata Pradeep
+Namburi</a>,
+<a href=https://github.com/rish-onesignal target=_blank rel=noopener>rish-onesignal</a>, <a href=https://github.com/shaikatz target=_blank rel=noopener>Shai
+Katz</a>, <a href=https://github.com/mikutas target=_blank rel=noopener>Takumi Sue</a>,
+<a href=https://github.com/tustvold target=_blank rel=noopener>Raphael Taylor-Davies</a>, and <a href=https://github.com/yashvardhan-kukreja target=_blank rel=noopener>Yashvardhan
+Kukreja</a> for all your hard work!</p><h2 id=extensions>Extensions</h2><p>In Linkerd 2.10, the Linkerd control plane is now modular and extensible with
+the introduction of <em>extensions</em>. Extensions are opt-in software components
+that run as part of the Linkerd control plane. The default control plane in
+2.10 now contains just the bare minimum necessary to run, with Prometheus,
+Grafana, dashboard, and other non-critical telemetry components packaged as a
+<code>viz</code> extension. This change drops the default Linkerd control plane down to
+<strong>200mb</strong> at startup, from <strong>~500mb</strong> in Linkerd 2.9!</p><p>The 2.10 release ships three extensions by default:</p><ul><li><strong>viz</strong>, which contains the on-cluster metrics stack: Prometheus, Grafana,
+the dashboard, etc.;</li><li><strong>multicluster</strong>, which contains the machinery for cross-cluster
+communication; and</li><li><strong>jaeger</strong>, which contains the Jaeger distributed tracing collector and UI.</li></ul><p>The move to extensions serves two purposes: first, it allows Linkerd adopters
+to choose exactly which bits and pieces of Linkerd they want to install on
+their cluster—a common request, especially for users who already have an
+off-cluster metrics pipeline.</p><p>Second, extensions allow the Linkerd community to build Linkerd-specific
+operators and controllers without having to modify the core Linkerd CLI.
+Extensions can come from anywhere, and because these extensions fit into
+Linkerd&rsquo;s CLI, they &ldquo;feel&rdquo; just like the rest of Linkerd.</p><p>Read more in the full <a href=/2021/03/01/linkerd-2.10-and-extensions/>blog post on Linkerd
+Extensions</a>.</p><h2 id=seamless-secure-multi-cluster-for-all-tcp-connections>Seamless, secure multi-cluster for all TCP connections</h2><p>Multi-cluster support, <a href=/2020/06/09/announcing-linkerd-2.8/>introduced in Linkerd
+2.8</a>, allows Linkerd to connect Kubernetes
+services across cluster boundaries in a way that&rsquo;s secure, fully transparent to
+the application, and independent of the topology of the underlying network.
+However, this functionality was restricted to HTTP connections only—until now.
+With Linkerd 2.10, <a href=/2.10/features/multicluster/>Linkerd&rsquo;s multi-cluster
+feature</a> now extends to all TCP
+connections, with the same guarantees of security and transparency that Linkerd
+provides for pod-to-pod communication.</p><p>Want to try it? Just install the <code>multicluster</code> extension!</p><h2 id=opaque-ports>Opaque ports</h2><p>The 2.10 release adds a new <em>opaque ports</em> feature that extends Linkerd&rsquo;s
+ability to handle certain types of traffic. An opaque port is simply one that
+Linkerd will proxy <em>without</em> performing protocol detection. While protocol
+detection is key to much of Linkerd&rsquo;s simplicity, certain types of traffic are
+incompatible with it, including, most commonly, the use of non-TLS&rsquo;d MySQL
+connections. In Linkerd 2.9 and earlier, these situations were handled by
+simply skipping them at the proxy level. In Linkerd 2.10, users can explicitly
+mark these connections as opaque ports, and Linkerd will proxy them without
+attempting protocol detection. This allows Linkerd to apply features such as
+transparent mTLS and instrumentation in situations where it was previously
+unable to handle.</p><p>Read more in the full blog post on <a href=/2021/02/23/protocol-detection-and-opaque-ports-in-linkerd/>opaque ports in
+Linkerd</a>.</p><h2 id=and-lots-more>And lots more!</h2><p>Linkerd 2.10 also has a tremendous list of other improvements, performance
+enhancements, and bug fixes, including:</p><ul><li>Updated the proxy to use TLS version 1.3 (support for TLS 1.2 remains enabled
+for compatibility with prior proxy versions)</li><li>Fixed an issue that could cause the inbound proxy to fail meshed HTTP/1
+requests from older proxies (from the stable-2.8.x vintage)</li><li>Added a new /shutdown admin endpoint that may only be accessed over the
+loopback network allowing batch jobs to gracefully terminate the proxy on
+completion</li><li>Added PodDisruptionBudgets to the control plane components so that they
+cannot be all terminated at the same time during disruptions</li><li>Fixed an issue where the proxy-injector, sp-validator, and tap APIServer did
+not refresh their certs automatically when provided externally—like through
+cert-manager</li><li>Introduced the <code>linkerd identity</code> command, used to fetch the TLS certificates
+for injected pods</li><li>Added a <code>linkerd viz list</code> command to list pods with tap enabled</li><li>Added support for multicluster gateways of types other than LoadBalancer</li><li>Moved Docker image hosting to the <code>cr.l5d.io</code> registry</li><li>And lots, lots more.</li></ul><p>See the <a href=https://github.com/linkerd/linkerd2/releases/tag/stable-2.10.0 target=_blank rel=noopener>full release
+notes</a> for
+details.</p><h2 id=whats-next-for-linkerd>What&rsquo;s next for Linkerd?</h2><p>The momentum behind Linkerd continues to astound us. Companies like <strong>Elkjøp</strong>
+(see the case study&mdash;"<a href=https://www.cncf.io/blog/2021/02/19/how-a-4-billion-retailer-built-an-enterprise-ready-kubernetes-platform-powered-by-linkerd/ target=_blank rel=noopener>How a $4 billion retailer built an enterprise-ready
+Kubernetes platform powered by
+Linkerd</a>"),
+<strong>Giant Swarm</strong>, <strong>PlexTrac</strong>, and <strong>Mythical Games</strong> have joined <strong>HP</strong>,
+<strong>H-E-B</strong>, <strong>Microsoft</strong>, <strong>Clover Health</strong>, <strong>Mercedes Benz</strong>, <strong>Subspace</strong>,
+and many more as recent adopters of Linkerd. The newly-formed <a href=/2021/01/28/announcing-the-linkerd-steering-committee/>Linkerd Steering
+Committee</a>,
+comprising production users who operate Linkerd at scale, is actively
+delivering feedback and guidance to maintainers. Finally, Linkerd was named
+<a href=https://devops.com/buoyant-wins-tech-ascension-award-recognizing-linkerd-service-mesh-as-best-open-source-devops-tool-of-2020/ target=_blank rel=noopener>the Best Open Source DevOps Tool of
+2020</a>.</p><p>But we&rsquo;re just getting started. In our next stable release, we&rsquo;ll focus on
+bringing <em>policy</em> to Linkerd, building on the foundation of mTLS to further
+enhance the security posture of Kubernetes applications everywhere.</p><p>The service mesh doesn&rsquo;t have to be complex, and security doesn&rsquo;t have to be
+high-friction. The future of Linkerd is built around these beliefs, and we hope
+they resonate with you as well.</p><h2 id=try-it-today>Try it today!</h2><p>Ready to try Linkerd? Those of you who have been tracking the 2.x branch via
+our <a href=/edge/>weekly edge releases</a> will already have seen these features
+in action. Either way, you can download the stable 2.10 release by running:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl --proto <span style=color:#a5d6ff>&#39;=https&#39;</span> --tlsv1.2 -sSfL https://run.linkerd.io/install | sh
+</span></span></code></pre></div><p>Using Helm? See our <a href=/2.10/tasks/install-helm/>guide to installing Linkerd with
+Helm</a>. Upgrading from an earlier release? We&rsquo;ve got
+you covered: see our <a href=/2.10/tasks/upgrade/>Linkerd upgrade guide</a> for how to
+use the <code>linkerd upgrade</code> command.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a community project and is hosted by the <a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing
+Foundation</a>. Linkerd is <a href=/2019/10/03/linkerds-commitment-to-open-governance/>committed to open
+governance.</a> If you have
+feature requests, questions, or comments, we&rsquo;d love to have you join our
+rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=/community/get-involved/>mailing lists</a>. Come and join the fun!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

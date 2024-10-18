@@ -1,0 +1,224 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Migrating from OpenServiceMesh to Linkerd | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="You&rsquo;ve read the Open Service Mesh team&rsquo;s announcement that
+OSM will be archived and no further OSM releases will be published,
+and you&rsquo;ve seen that Linkerd is
+welcoming OSM adopters to Linkerd with open arms&mldr;
+now what? What does it look like to migrate from OSM to Linkerd?
+Any time you look at migrating meshes, there are two main challenges:
+
+
+Obviously, you configure different meshes in different ways. When going from
+OSM to Linkerd, you need to translate the SMI resources used for OSM&rsquo;s
+configuration to the Linkerd (or Gateway API) resources that Linkerd wants.
+This is straightforward for some resources, and less straightforward for
+others."><meta property="og:url" content="https://travisbeckham.github.io/2023/05/26/migrating-from-openservicemesh-to-linkerd/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Migrating from OpenServiceMesh to Linkerd"><meta property="og:description" content="You’ve read the Open Service Mesh team’s announcement that OSM will be archived and no further OSM releases will be published, and you’ve seen that Linkerd is welcoming OSM adopters to Linkerd with open arms… now what? What does it look like to migrate from OSM to Linkerd?
+Any time you look at migrating meshes, there are two main challenges:
+Obviously, you configure different meshes in different ways. When going from OSM to Linkerd, you need to translate the SMI resources used for OSM’s configuration to the Linkerd (or Gateway API) resources that Linkerd wants. This is straightforward for some resources, and less straightforward for others."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-05-26T00:00:00+00:00"><meta property="article:modified_time" content="2023-05-26T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/05/26/migrating-from-openservicemesh-to-linkerd/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/05/26/migrating-from-openservicemesh-to-linkerd/cover.png"><meta name=twitter:title content="Migrating from OpenServiceMesh to Linkerd"><meta name=twitter:description content="You’ve read the Open Service Mesh team’s announcement that OSM will be archived and no further OSM releases will be published, and you’ve seen that Linkerd is welcoming OSM adopters to Linkerd with open arms… now what? What does it look like to migrate from OSM to Linkerd?
+Any time you look at migrating meshes, there are two main challenges:
+Obviously, you configure different meshes in different ways. When going from OSM to Linkerd, you need to translate the SMI resources used for OSM’s configuration to the Linkerd (or Gateway API) resources that Linkerd wants. This is straightforward for some resources, and less straightforward for others."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/05/26/migrating-from-openservicemesh-to-linkerd/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-05-26T00:00:00Z","dateModified":"2023-05-26T00:00:00Z","headline":"Migrating from OpenServiceMesh to Linkerd","image":"https://travisbeckham.github.io/2023/05/26/migrating-from-openservicemesh-to-linkerd/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Migrating from OpenServiceMesh to Linkerd</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>May 26, 2023 • 9 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/05/26/migrating-from-openservicemesh-to-linkerd/cover.png alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>You&rsquo;ve read the Open Service Mesh team&rsquo;s announcement that
+<a href=https://openservicemesh.io/blog/osm-project-update/ target=_blank rel=noopener>OSM will be archived and no further OSM releases will be published</a>,
+and you&rsquo;ve seen that Linkerd is
+<a href=../../05/welcome-to-linkerd-open-service-mesh-adopters/>welcoming OSM adopters to Linkerd with open arms</a>&mldr;
+now what? What does it look like to migrate from OSM to Linkerd?</p><p>Any time you look at migrating meshes, there are two main challenges:</p><ol><li><p>Obviously, you configure different meshes in different ways. When going from
+OSM to Linkerd, you need to translate the SMI resources used for OSM&rsquo;s
+configuration to the Linkerd (or Gateway API) resources that Linkerd wants.
+This is straightforward for some resources, and less straightforward for
+others.</p></li><li><p>Additionally, since OSM and Linkerd are both sidecar meshes, you can&rsquo;t have a
+single workload be in both at the same time: both sidecars want to intercept
+network traffic, and only one of them gets to win. This means that the
+overall strategy for the migration can be a bit more complex than we&rsquo;d like.</p></li></ol><p>Let&rsquo;s take these one at a time.</p><h2 id=configuration>Configuration</h2><p>OpenServiceMesh is configured with SMI resources. If you&rsquo;re running any
+nontrivial OSM configuration, you&rsquo;ll need to translate resources &ndash; here are
+some of the high points to think about.</p><h3 id=mesh-basics>Mesh Basics</h3><p>Like Linkerd, OSM uses a mutating admission webhook to handle actually injecting
+its sidecar into workloads, and has no separate CRD describing workloads to mesh
+&ndash; conveniently, this means there&rsquo;s little work to do here as far as
+configuration is concerned.</p><p><em>Unlike</em> Linkerd, OSM uses its MeshConfig resource to configure a lot of details
+about the mesh itself.</p><ul><li><p>Some of these details are handled differently in Linkerd. - The sidecar log
+level and init container strategy, for example, are set with workload
+annotations or environment variables in Linkerd, rather than globally. -
+Tracing is handled by the <code>linkerd-jaeger</code> extension, rather than being
+configured globally.</p></li><li><p>Some details simply don&rsquo;t apply directly to Linkerd. - OSM&rsquo;s ingress and
+egress settings are likely best handled with Kubernetes NetworkPolicy
+resources in Linkerd. - Linkerd and OSM handle workload certificates rather
+differently, so OSM&rsquo;s certificate validity settings don&rsquo;t correspond directly
+to any Linkerd setting.</p></li></ul><h3 id=ingress>Ingress</h3><p>OSM uses its IngressBackend resource to specifically describe which traffic will
+be allowed to flow from an ingress controller to workloads within the mesh.
+Linkerd, instead, prefers to handle the ingress controller by having the ingress
+controller participate fully in the mesh: you should inject the ingress
+controller into the mesh, then use Linkerd&rsquo;s normal mechanisms to control
+access.</p><h3 id=smi-traffic-handling>SMI Traffic Handling</h3><p>Beyond the basics of getting workloads participating in the mesh, another common
+function of OSM is traffic handling. OSM uses SMI resources for this, notably
+the TrafficSplit and TrafficTarget resources.</p><h4 id=trafficsplit>TrafficSplit</h4><p>Linkerd supports the TrafficSplit resource via the <code>linkerd-smi</code> extension. Once
+this is installed, you should find that TrafficSplit resources function
+basically the same between the two meshes, generally permitting easy migration
+for this function.</p><p>As of Linkerd 2.13, you can also use HTTPRoute resources for traffic splitting.
+This will be a better option for the long run, although it will (of course)
+require rewriting your TrafficSplit resources using HTTPRoutes with weights.</p><h4 id=traffictarget-and-httproutegroup>TrafficTarget and HTTPRouteGroup</h4><p>The TrafficTarget resource works with HTTPRouteGroup resources to allow you to
+define access policies and traffic permissions for specific workloads. In
+Linkerd, this is best expressed using Server, HTTPRoute, and AuthorizationPolicy
+resources (note that this requires at least Linkerd 2.12).</p><p>In SMI, TrafficTargets use associated HTTPRouteGroup resources to define
+traffic-matching rules. As an example, consider the following OSM configuration:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#8b949e;font-style:italic># This is an OSM configuration allowing a workload using the &#34;website&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># ServiceAccount to access APIs on the &#34;user&#34; workload behind the `/users`</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Path prefix.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic>#</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Start by defining an HTTPRouteGroup for the path prefix.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRouteGroup</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-routes</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>matches</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>users-match</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>pathRegex</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>/users</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>methods</span>:<span style=color:#6e7681> </span>[<span style=color:#a5d6ff>&#34;*&#34;</span>]<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Then define a TrafficTarget that uses it.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>TrafficTarget</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-target</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>destination</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>ServiceAccount</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>users</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>8080</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>rules</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRouteGroup</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-routes</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>matches</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#a5d6ff>users-match</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>sources</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>ServiceAccount</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>website-service</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>The HTTPRouteGroup defines one or more sets of HTTP matches (we&rsquo;re just using
+one here). The TrafficTarget defines:</p><ul><li><code>sources</code>, which in this example define which ServiceAccounts may originate
+traffic through this TrafficTarget;</li><li><code>rules</code>, which select the HTTPRouteGroup matching rules that must match for
+traffic to be allowed through thisthis TrafficTarget; and</li><li>a <code>destination</code>, which selects the ServiceAccount of the workload(s) to which
+this TrafficTarget may pass traffic.</li></ul><p>In Linkerd, we use a Server to define the destination, HTTPRoutes to describe
+the rules, and an AuthorizationPolicy with MeshTLSAuthentications to describe
+the sources:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#8b949e;font-style:italic># This is an Linkerd configuration allowing a workload using the &#34;website&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># ServiceAccount to access APIs on the &#34;user&#34; workload behind the `/users`</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Path prefix.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic>#</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># We start by defining a Server that matches the Pods and ports for our</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># destination workload. This Server covers all Pods with the</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># `app: user-workload` label, on the HTTP port.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io/v1beta1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Server</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-server</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>podSelector</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>matchLabels</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>app</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-workload</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Next, we define an HTTPRoute to describe which paths we&#39;ll allow through.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRoute</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-routes</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>parentRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>user-server</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Server</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>group</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>rules</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>matches</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>path</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>value</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>/users</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># Finally, we use a MeshTLSAuthentication and an AuthorizationPolicy to</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#8b949e;font-style:italic># define what workload identity is allowed to use the HTTPRoute.</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io/v1alpha1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>MeshTLSAuthentication</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>website-authn</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>identities</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#a5d6ff>&#34;website.default.serviceaccount.identity.linkerd.cluster.local&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io/v1alpha1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>AuthorizationPolicy</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>users-policy</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>default</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>targetRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>group</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRoute</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>users-routes</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>requiredAuthenticationRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>website-authn</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>MeshTLSAuthentication</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>group</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>While Linkerd does require more CRDs, it&rsquo;s also more likely that you&rsquo;ll be able
+to reuse some resources across multiple routes or AuthorizationPolicies (for
+example, a single AuthorizationPolicy can allow access from multiple
+MeshTLSAuthentications, and multiple HTTPRoutes can be associated with multiple
+Servers).</p><h4 id=other-resources>Other Resources</h4><p>Of course, some OSM resources currently have no direct equivalent in Linkerd.
+For example, since Linkerd focuses on layer 7 traffic, it has no equivalent for
+OSM&rsquo;s TCPRoute. Likewise, OSM&rsquo;s Egress resource has no direct Linkerd equivalent
+(though, again, Kubernetes NetworkPolicy resources may help here).</p><h2 id=migration-strategies>Migration Strategies</h2><p>Given this context on configuration translation, let&rsquo;s look at migration
+strategies.</p><h3 id=1-forklift-migration>1. Forklift Migration</h3><p>The simplest strategy is definitely the so-called forklift migration: rip out
+OSM, install Linkerd, and rebuild whatever parts of your configuration are
+important to you. This is a strategy that everyone is quick to dismiss, but if
+you primarily use OSM for mTLS, and if you can schedule downtime, this might
+actually be all you need.</p><ul><li>Schedule downtime.</li><li>Uninstall OSM.</li><li>Install Linkerd.</li><li>Wherever you have the <code>openservicemesh.io/sidecar-injection: enabled</code>
+annotation, add the <code>linkerd.io/inject: enable</code> annotation and restart the
+relevant deployments.</li><li>Test!</li><li>Release downtime.</li></ul><p>Obviously, taking downtime for a migration isn&rsquo;t ideal, but this strategy can be
+far and away the simplest way to handle everything.</p><h3 id=2-workload-by-workload>2. Workload by Workload</h3><p>While a given workload can&rsquo;t be part of both meshes at the same time, it <em>is</em>
+possible to install Linkerd in the same cluster with OSM, then move workloads
+from OSM to Linkerd one at a time. This approach can allow for a straightforward
+zero-downtime migration:</p><ul><li>Create any Linkerd configuration needed to allow the workload being migrated
+to work with Linkerd</li><li>Replace the <code>openservicemesh.io/sidecar-injection: enabled</code> annotation on the
+Deployment of the workload being migrated with the <code>linkerd.io/inject: enable</code>
+annotation</li><li>Restart the workload&rsquo;s Pods</li></ul><p>This method preserves uptime by allowing workloads to continue communicating
+with each other throughout the whole process, and by taking advantage of
+Kubernetes&rsquo; ability to restart a workload without downtime as long as the
+workload has multiple replicas.</p><p>With this method, it&rsquo;s important to realize that in situations where a workload
+running under OSM needs to communicate with a workload running under Linkerd (in
+either direction), <strong>this communication will be cleartext</strong> rather than using
+mTLS. This implies that OSM needs to be operating in permissive mode, and that
+Linkerd can&rsquo;t fully lock down communications until after the migration is
+finished. If your application can work with this constraint, though, the
+workload-by-workload method can be a simple way to migrate without downtime.</p><h3 id=3-separate-clusters>3. Separate Clusters</h3><p>Finally, the <em>safest</em> migration strategy is to use a completely separate cluster
+to bring up your application with Linkerd. This removes any possibility of your
+Linkerd installation confusing OSM (or vice versa), and can also permit
+zero-downtime migration.</p><ul><li>Bring up a separate cluster.</li><li>Install Linkerd into the new cluster.</li><li>Install your application into the new cluster, including configuring Linkerd
+as needed.</li><li>Test your application in the new cluster.</li><li>Use a canary or A/B model to shift traffic to the new cluster.</li><li>Decommission the old cluster.</li></ul><p>On the face of it, canarying entire clusters can seem daunting: however, it can
+be easier than it may seem.</p><ul><li><p>One option is to use the old cluster&rsquo;s ingress controller: match a path prefix
+of <code>/</code> to redirect some fraction of traffic across the network to the new
+cluster&rsquo;s ingress controller. When you&rsquo;re satisfied that all is working, swing
+the DNS from the old ingress controller to the new.</p><p>This method is very simple and can work very well with many ingress
+controllers. It obviously incurs some latency and extra network traffic; it&rsquo;s
+important to use an HTTP <code>Redirect</code> rather than simply routing to reduce these
+effects.</p></li><li><p>If your application is already using a CDN, your CDN may be able to assist
+here.</p></li><li><p>If all else fails, you can use DNS round-robin routing for a form of canary
+rollout: use an A record with multiple IP addresses, and change the number of
+replicas of each IP address.</p><p>For example, if you start with 10 copies of the IP address of the old ingress
+controller, then change one at a time to the IP address of the new ingress
+controller, you can shift traffic 10% at a time. It&rsquo;s not perfect, but it&rsquo;s an
+option.</p></li></ul><h2 id=going-forward>Going Forward</h2><p>Obviously, a single blog post can&rsquo;t capture all the nuances of migrating from
+one service mesh to another: our goal here is primarily to give some advice and
+point out some things to be aware of. Fully understanding your OSM
+configuration, and thinking up front about your migration strategy - including
+how to test as you go! - will be critical.</p><p>You needn&rsquo;t go this alone, either! The folks on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>the Linkerd OSS Slack</a> are always around to help,
+and you can also check out the <a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd forum</a> for
+more information. Additionally, there&rsquo;s a hands-on
+<a href=https://buoyant.io/blog/announcing-enterprise-migration-for-open-service-mesh-customers target=_blank rel=noopener>enterprise migration for OSM existing OSM adopters</a>
+offered by Buoyant, the creators of Linkerd; other commercial Linkerd providers
+may offer something similar. Whatever route you take for migration, we look
+forward to hearing from you &ndash; welcome!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2023/05/05/welcome-to-linkerd-open-service-mesh-adopters/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/05/05/welcome-to-linkerd-open-service-mesh-adopters/>Welcome to Linkerd, Open Service Mesh adopters!</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>May 5, 2023 • 1 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

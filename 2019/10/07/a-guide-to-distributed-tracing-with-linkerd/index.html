@@ -1,0 +1,125 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>A guide to distributed tracing with Linkerd | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="We&rsquo;re happy to announce that Linkerd 2.6 adds support for distributed tracing!
+This means that Linkerd data plane proxies can now emit trace spans, allowing
+you to see the exact amount of time that requests spend in the Linkerd proxy for
+traced requests. Since using distributed tracing in practice can be quite
+difficult, in this post, we&rsquo;ve assembled a reference architecture with our
+recommendation on the best way to make use of distributed tracing with Linkerd."><meta property="og:url" content="https://travisbeckham.github.io/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="A guide to distributed tracing with Linkerd"><meta property="og:description" content="We’re happy to announce that Linkerd 2.6 adds support for distributed tracing! This means that Linkerd data plane proxies can now emit trace spans, allowing you to see the exact amount of time that requests spend in the Linkerd proxy for traced requests. Since using distributed tracing in practice can be quite difficult, in this post, we’ve assembled a reference architecture with our recommendation on the best way to make use of distributed tracing with Linkerd."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2019-10-07T00:00:00+00:00"><meta property="article:modified_time" content="2019-10-07T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/cover.png"><meta name=twitter:title content="A guide to distributed tracing with Linkerd"><meta name=twitter:description content="We’re happy to announce that Linkerd 2.6 adds support for distributed tracing! This means that Linkerd data plane proxies can now emit trace spans, allowing you to see the exact amount of time that requests spend in the Linkerd proxy for traced requests. Since using distributed tracing in practice can be quite difficult, in this post, we’ve assembled a reference architecture with our recommendation on the best way to make use of distributed tracing with Linkerd."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Alex Leong","datePublished":"2019-10-07T00:00:00Z","dateModified":"2019-10-07T00:00:00Z","headline":"A guide to distributed tracing with Linkerd","image":"https://travisbeckham.github.io/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>A guide to distributed tracing with Linkerd</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/alex-leong.jpg alt="Alex Leong" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Alex Leong</div><div class=blog-post-meta__date>Oct 7, 2019 • 8 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><p>We&rsquo;re happy to announce that Linkerd 2.6 adds support for distributed tracing!
+This means that Linkerd data plane proxies can now emit trace spans, allowing
+you to see the exact amount of time that requests spend in the Linkerd proxy for
+traced requests. Since using distributed tracing in practice can be quite
+difficult, in this post, we&rsquo;ve assembled a reference architecture with our
+recommendation on the best way to make use of distributed tracing with Linkerd.</p><h2 id=overview>Overview</h2><p>Tracing can be an invaluable tool in debugging distributed systems performance,
+especially for identifying bottlenecks and understanding the latency cost of
+each component in your system. If you&rsquo;re not already familiar with the idea
+behind distributed tracing, the <a href=https://opentelemetry.io/docs/concepts/observability-primer/#what-is-observability target=_blank rel=noopener>OpenTelemetry Observability
+Primer</a>
+gives a good overview of the concepts. The promises of distributed tracing are
+exciting, but in our experience, there are significant barriers to achieving
+those promises in practice.</p><p>First, the distributed tracing ecosystem is very complex. It includes a dizzying
+array of projects such as <a href=https://zipkin.io/ target=_blank rel=noopener>Zipkin</a>,
+<a href=https://www.jaegertracing.io/ target=_blank rel=noopener>Jaeger</a>, <a href=https://opentracing.io/ target=_blank rel=noopener>OpenTracing</a>,
+<a href=https://opencensus.io/ target=_blank rel=noopener>OpenCensus</a>,
+<a href=https://opentelemetry.io/ target=_blank rel=noopener>OpenTelemetry</a>, and many many others, each with
+partially overlapping sets of functionality. There are <a href=https://opencensus.io/feature_matrix/ target=_blank rel=noopener>complex
+matrices</a> of which projects can
+interoperate with which other projects and in which ways.</p><p>To make matters worse, the addition of a service mesh adds another layer of
+decision-making complexity. Using a service mesh and using distributed tracing
+have feature overlap in what they provide, e.g. in the ability to draw
+application topologies. Also, while most of the features of a service mesh
+require no code changes, this is not true for distributed tracing. My fellow
+Linkerd maintainer William Morgan wrote an earlier blog post about this,
+entitled <a href=/2019/08/09/service-mesh-distributed-tracing-myths/>Distributed tracing in the service mesh: four
+myths</a>.</p><p>Given the amount of confusion we saw in the Linkerd community, it was important
+to us to not just &ldquo;add distributed tracing&rdquo; to Linkerd 2.6 and call it a day,
+but also to provide concrete recommendations for how a Linkerd-enabled
+application could actually make use of this feature. Hence, the reference
+architecture below.</p><h2 id=distributed-tracing-in-linkerd-26>Distributed tracing in Linkerd 2.6</h2><p>First, let&rsquo;s understand what exactly &ldquo;distributed tracing support&rdquo; looks like in
+Linkerd. It&rsquo;s actually quite simple: when a Linkerd data plane proxy sees a
+tracing header in b3 format in a proxied HTTP request (see below for why this
+particular format), Linkerd will emit a trace span for that request. This span
+will include information about the exact amount of time spent in the Linkerd
+proxy, and, in the future, potentially other information as well.</p><p>And that&rsquo;s it. As you can see, Linkerd&rsquo;s role in distributed tracing is actually
+quite simple. The complexity lies in everything else that must be in place in
+order to make this feature of Linkerd useful.</p><p>What else is required? To use Linkerd&rsquo;s new distributed tracing feature, you&rsquo;ll
+need several additional components in your system:</p><ol><li>An ingress layer that kicks off the trace on particular requests.</li><li>A client library for your application. (Your application code must propagate
+trace headers, and ideally emit its own spans as well.)</li><li>A trace collector to collect span data and turn them into traces.</li><li>A trace backend to store the trace data and allow the user to view/query it.</li></ol><h2 id=demo>Demo!</h2><p>Let&rsquo;s take a look at how distributed tracing works in our reference
+architecture. Then we&rsquo;ll describe each of the components in more detail and
+explain how to use those components in your own application.</p><p>Make sure you have the Linkerd 2.6 CLI available and have Linkerd 2.6 installed
+on your cluster. If you don&rsquo;t, you can follow the
+<a href=/2.10/tasks/install/>installation</a> or <a href=/2.10/tasks/upgrade/>upgrade</a> instructions.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>$ linkerd version
+</span></span><span style=display:flex><span>Client version: stable-2.6
+</span></span><span style=display:flex><span>Server version: stable-2.6
+</span></span></code></pre></div><p>Start by cloning the reference architecture repository:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>git clone git@github.com:adleong/emojivoto.git <span style=color:#ff7b72;font-weight:700>&amp;&amp;</span> <span style=color:#79c0ff>\
+</span></span></span><span style=display:flex><span><span style=color:#79c0ff></span>    cd emojivoto
+</span></span></code></pre></div><p>Next we install Jaeger and the OpenCensus collector. It&rsquo;s important to inject
+these components with Linkerd so that they can receive spans from the Linkerd
+proxy over a secure connection.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>linkerd inject tracing.yml | kubectl apply -f -
+</span></span></code></pre></div><p>Finally, we install the Nginx ingress controller and the Emojivoto application
+itself. Since we inject these components with Linkerd, we will be able to see
+the Linkerd proxy itself in the resulting traces.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>linkerd inject emojivoto.yml | kubectl apply -f - <span style=color:#ff7b72;font-weight:700>&amp;&amp;</span> <span style=color:#79c0ff>\
+</span></span></span><span style=display:flex><span><span style=color:#79c0ff></span>    linkerd inject ingress.yml | kubectl apply -f -
+</span></span></code></pre></div><p>With all of that in place, we can use the Jaeger dashboard to explore traces
+flowing through the system.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n tracing port-forward deploy/jaeger <span style=color:#a5d6ff>16686</span> &amp;; <span style=color:#79c0ff>\
+</span></span></span><span style=display:flex><span><span style=color:#79c0ff></span>    open http://localhost:16686
+</span></span></code></pre></div><figure><img alt="Complete Trace" class="img img--max-fill img--center img--rounded" src=/2019/10/07/a-guide-to-distributed-tracing-with-linkerd/distributed-tracing-trace.png><figcaption>Complete Trace</figcaption></figure><h2 id=linkerd-distributed-tracing-reference-architecture>Linkerd Distributed Tracing Reference Architecture</h2><p>This reference architecture definitely isn&rsquo;t the only way to get distributed
+tracing for your application, and it may not even be the best way, depending on
+your application and its requirements, but it&rsquo;s a good starting point and will
+work well with or without a service mesh.</p><p>The reference architecture has 4 components: Nginx for ingress, OpenCensus for
+the client library, OpenCensus for the trace collector, and Jaeger for the
+backend. We&rsquo;ll describe each of these components in more detail. Of course, each
+of these components is swappable&ndash;we&rsquo;ve detailed the requirements for
+substituting a different option for each component below.</p><h2 id=ingress-nginx>Ingress: Nginx</h2><p>The ingress is an especially important component for distributed tracing because
+it creates the root span of each trace and is responsible for deciding if that
+trace should be sampled or not. Having the ingress make all sampling decisions
+ensures that either an entire trace is sampled or none of it is, and avoids
+creating &ldquo;partial traces&rdquo;.</p><p>Distributed tracing systems all rely on services to propagate metadata about the
+current trace from requests that they receive to requests that they send. This
+metadata, called the trace context, is usually encoded in one or more request
+headers. There are many different trace context header formats and while we hope
+that the ecosystem will eventually converge on open standards like <a href=https://www.w3.org/TR/trace-context/ target=_blank rel=noopener>W3C
+tracecontext</a>, we only use the <a href=https://github.com/openzipkin/b3-propagation target=_blank rel=noopener>b3
+format</a> today. Being one of the
+earliest widely used formats, it has the widest support, especially among
+ingresses like Nginx.</p><p>This reference architecture includes a simple Nginx config that samples 50% of
+traces and emits trace data to the collector (using the Zipkin protocol). Any
+ingress controller can be used here in place of Nginx as long as it:</p><ul><li>Supports probabilistic sampling</li><li>Encodes trace context in the b3 format</li><li>Emits spans in a protocol supported by the OpenCensus collector</li></ul><h2 id=client-library-opencensus>Client library: OpenCensus</h2><p>While it is possible for services to manually propagate trace propagation headers, it&rsquo;s usually much easier to use a library which does three things:</p><ul><li>Propagates the trace context from incoming request headers to outgoing request headers</li><li>Modifies the trace context (i.e. starts a new span)</li><li>Transmits this data to a trace collector</li></ul><p>We recommend using OpenCensus in your service and configuring it with:</p><ul><li><a href=https://github.com/openzipkin/b3-propagation target=_blank rel=noopener>b3 propagation</a> (this is the default)</li><li><a href=https://opencensus.io/exporters/supported-exporters/go/ocagent/ target=_blank rel=noopener>the OpenCensus agent exporter</a></li></ul><p>The OpenCensus agent exporter will export trace data to the OpenCensus collector
+over a gRPC API. The details of how to configure OpenCensus will vary language
+by language, but there are <a href=https://opencensus.io/quickstart/ target=_blank rel=noopener>guides for many popular
+languages</a>. You can also see an end-to-end
+example of this in Go with our example application,
+<a href=https://github.com/adleong/emojivoto target=_blank rel=noopener>Emojivoto</a>.</p><p>You may notice that the OpenCensus project is in maintenance mode and will
+become part of <a href=https://opentelemetry.io/ target=_blank rel=noopener>OpenTelemetry</a>. Unfortunately,
+OpenTelemetry is not yet production ready and so OpenCensus remains our
+recommendation for the moment.</p><h2 id=collector-opencensus>Collector: OpenCensus</h2><p>The OpenCensus collector receives trace data from the OpenCensus agent exporter
+and potentially does translation and filtering before sending that data to
+Jaeger. Having the OpenCensus exporter send to the OpenCensus collector gives us
+a lot of flexibility: we can switch to any backend that OpenCensus supports
+without needing to interrupt the application.</p><h2 id=backend-jaeger>Backend: Jaeger</h2><p>Jaeger is one of the most widely used tracing backends and for good reason: it
+is easy to use and does a great job of visualizing traces. However, <a href=https://opencensus.io/service/exporters/ target=_blank rel=noopener>any backend
+supported by OpenCensus</a> can be used
+instead.</p><h2 id=linkerd>Linkerd</h2><p>If your application is injected with Linkerd, the Linkerd proxy will participate in the traces and will also emit trace data to the OpenCensus collector. This enriches the trace data and allows you to see exactly how much time requests are spending in the proxy and on the wire. To enable Linkerd&rsquo;s participation:</p><ul><li>Set the <code>config.linkerd.io/trace-collector</code> annotation on the namespace or pod
+specs that you want to participate in traces. This should be set to the
+address of the OpenCensus collector service. In our reference architecture
+this is <code>oc-collector.tracing:55678</code>.</li><li>Set the <code>config.alpha.linkerd.io/trace-collector-service-account</code> annotation
+on the namespace or pod specs that you want to participate in traces. This
+should be set to the name of the service account of the collector and is used
+to ensure secure communication between the proxy and the collector. This can
+be omitted if the collector is running as the default service account. This is
+the case for the reference architecture so we omit it.</li><li>Ensure the pods that you want to emit spans are injected with the Linkerd
+proxy.</li><li>Ensure the OpenCensus collector is injected with the Linkerd proxy.</li></ul><p>While Linkerd can only actively participate in traces that use the b3
+propagation format (as in the reference architecture above), Linkerd will always
+forward unknown request headers transparently, which means it will never
+interfere with traces that use other propagation formats. We would also love to
+expand Linkerd&rsquo;s support for more propagation formats. Please open an
+<a href=https://github.com/linkerd/linkerd2/issues target=_blank rel=noopener>issue</a> (or <a href=https://github.com/linkerd/linkerd2/pulls target=_blank rel=noopener>pull
+request</a>!) if this interests you.</p><h2 id=conclusion>Conclusion</h2><p>Hopefully this reference architecture makes it easier for you to understand the
+different moving parts of distributed tracing and to get started instrumenting
+your application. While the reference architecture above isn&rsquo;t the only way to
+get distributed tracing for your application, we&rsquo;d hope it represents a good
+starting point for your exploration. And if it doesn&rsquo;t, please let us know!</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

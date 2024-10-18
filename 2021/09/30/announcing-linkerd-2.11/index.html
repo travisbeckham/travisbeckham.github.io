@@ -1,0 +1,118 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Announcing Linkerd 2.11: Policy, gRPC retries, performance improvements, and
+more! | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Today we&rsquo;re very happy to announce the release of Linkerd 2.11. This release
+marks a major step forward for Linkerd by introducing policy, a long-awaited
+feature that allows users to control which services are allowed to connect and
+send requests to each other. This release also introduces a host of
+improvements and performance enhancements, including retries for gRPC calls, a
+general fix for container startup ordering issues, an even smaller proxy, an
+even smaller control plane, and lots more."><meta property="og:url" content="https://travisbeckham.github.io/2021/09/30/announcing-linkerd-2.11/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Announcing Linkerd 2.11: Policy, gRPC retries, performance improvements, and
+more!"><meta property="og:description" content="Today we’re very happy to announce the release of Linkerd 2.11. This release marks a major step forward for Linkerd by introducing policy, a long-awaited feature that allows users to control which services are allowed to connect and send requests to each other. This release also introduces a host of improvements and performance enhancements, including retries for gRPC calls, a general fix for container startup ordering issues, an even smaller proxy, an even smaller control plane, and lots more."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-09-30T00:00:00+00:00"><meta property="article:modified_time" content="2021-09-30T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/09/30/announcing-linkerd-2.11/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/09/30/announcing-linkerd-2.11/cover.jpg"><meta name=twitter:title content="Announcing Linkerd 2.11: Policy, gRPC retries, performance improvements, and
+more!"><meta name=twitter:description content="Today we’re very happy to announce the release of Linkerd 2.11. This release marks a major step forward for Linkerd by introducing policy, a long-awaited feature that allows users to control which services are allowed to connect and send requests to each other. This release also introduces a host of improvements and performance enhancements, including retries for gRPC calls, a general fix for container startup ordering issues, an even smaller proxy, an even smaller control plane, and lots more."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/09/30/announcing-linkerd-2.11/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2021-09-30T00:00:00Z","dateModified":"2021-09-30T00:00:00Z","headline":"Announcing Linkerd 2.11: Policy, gRPC retries, performance improvements, and\nmore!","image":"https://travisbeckham.github.io/2021/09/30/announcing-linkerd-2.11/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Announcing Linkerd 2.11: Policy, gRPC retries, performance improvements, and
+more!</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Sep 30, 2021 • 5 min read</div></div></div></div><div class=blog-post__cover><img src=/2021/09/30/announcing-linkerd-2.11/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>Today we&rsquo;re very happy to announce the release of Linkerd 2.11. This release
+marks a major step forward for Linkerd by introducing <em>policy</em>, a long-awaited
+feature that allows users to control which services are allowed to connect and
+send requests to each other. This release also introduces a host of
+improvements and performance enhancements, including retries for gRPC calls, a
+general fix for container startup ordering issues, an even smaller proxy, an
+even smaller control plane, and lots more.</p><p>If you&rsquo;re running Linkerd today and are curious about the upgrade process,
+Buoyant will be hosting a <a href=https://buoyant.io/register/upgrading-to-linkerd-2-11-workshop target=_blank rel=noopener>free <em>Upgrading to Linkerd 2.11</em>
+workshop</a> on
+Thursday, Oct 23rd, 9am PT.</p><p>This release includes a lot of hard work from over 30 contributors. A special
+thank you to <a href=https://github.com/gusfcarvalho target=_blank rel=noopener>Gustavo Fernandes de Carvalho</a>,
+<a href=https://github.com/olegy2008 target=_blank rel=noopener>Oleg Vorobev</a>, <a href=https://github.com/bartpeeters target=_blank rel=noopener>Bart
+Peeters</a>, <a href=https://github.com/EpicStep target=_blank rel=noopener>Stepan
+Rabotkin</a>,
+<a href=https://github.com/xichengliudui target=_blank rel=noopener>LiuDui</a>, <a href=https://github.com/drewhemm target=_blank rel=noopener>Andrew
+Hemming</a>, <a href=https://github.com/importhuman target=_blank rel=noopener>Ujjwal
+Goyal</a>, <a href=https://github.com/knutgoetz target=_blank rel=noopener>Knut
+Götz</a>, <a href=https://github.com/sannimichaelse target=_blank rel=noopener>Sanni
+Michael</a>, <a href=https://github.com/bsord target=_blank rel=noopener>Brandon
+Sorgdrager</a>, <a href=https://github.com/ubergesundheit target=_blank rel=noopener>Gerald
+Pape</a>, <a href=https://github.com/rumanzo target=_blank rel=noopener>Alexey
+Kostin</a>, <a href=https://github.com/rdileep13 target=_blank rel=noopener>rdileep13</a>,
+<a href=https://github.com/mikutas target=_blank rel=noopener>Takumi Sue</a>, <a href=https://github.com/akshitgrover target=_blank rel=noopener>Akshit
+Grover</a>, <a href=https://github.com/aryan9600 target=_blank rel=noopener>Sanskar
+Jaiswal</a>, <a href=https://github.com/aatarasoff target=_blank rel=noopener>Aleksandr
+Tarasov</a>, <a href=https://github.com/skinn target=_blank rel=noopener>Taylor</a>,
+<a href=https://github.com/migue target=_blank rel=noopener>Miguel Ángel Pastor Olivar</a>,
+<a href=https://github.com/wangchenglong01 target=_blank rel=noopener>wangchenglong01</a>, <a href=https://github.com/jsoref target=_blank rel=noopener>Josh
+Soref</a>, <a href=https://github.com/kipply target=_blank rel=noopener>Carol Chen</a>,
+<a href=https://github.com/psmit target=_blank rel=noopener>Peter Smit</a>, <a href=https://github.com/tarvip target=_blank rel=noopener>Tarvi
+Pillessaar</a>, <a href=https://github.com/jroper target=_blank rel=noopener>James
+Roper</a>, <a href=https://github.com/muenchdo target=_blank rel=noopener>Dominik
+Münch</a>, <a href=https://github.com/Szymongib target=_blank rel=noopener>Szymon
+Gibała</a>, and <a href=https://github.com/mhulscher target=_blank rel=noopener>Mitch
+Hulscher</a> for all your hard work!</p><h2 id=authorization-policy>Authorization policy</h2><p>Linkerd&rsquo;s new server authorization policy feature gives you fine-grained
+control of which services are allowed to communicate with each other. These
+policies are built directly on the secure service identities provided by
+Linkerd&rsquo;s <a href=/2.11/features/automatic-mtls/>automatic mTLS</a> feature. In keeping
+with Linkerd&rsquo;s design principles, authorization policies are expressed in a
+composable, Kubernetes-native way that requires a minimum of configuration but
+that can express a wide range of behaviors.</p><p>To accomplish this, Linkerd 2.11 introduces a set of default authorization
+policies that can be applied at the cluster, namespace, or pod level simply by
+setting a Kubernetes annotation, including:</p><ul><li><code>all-authenticated</code> (only allow requests from mTLS-validated services);</li><li><code>all-unauthenticated</code> (allow all requests)</li><li><code>deny</code> (deny all requests)</li><li>&mldr; and more.</li></ul><p>Linkerd 2.11 additionally introduces two new CRDs, <code>Server</code> and
+<code>ServerAuthorization</code>, which together allow fine-grained policies to be applied
+across arbitrary sets of pods. For example, a Server can select across all
+admin ports on all pods in a namespace, and a ServerAuthorization can allow
+health check connection from kubelet, or
+<a href=https://buoyant.io/mtls-guide/ target=_blank rel=noopener>mTLS</a> connections for metrics
+collection.</p><p>Together, these annotations and CRDs allow you to easily specify a wide range
+of policies for your cluster, from &ldquo;all traffic is allowed&rdquo; to &ldquo;port 8080 on
+service Foo can only receive
+<a href=https://linkerd.io/2.10/features/automatic-mtls/ target=_blank rel=noopener>mTLS</a>
+traffic from services using the Bar service
+account&rdquo;, to lots more. (See the <a href=/2.11/features/server-policy/>full policy docs
+»</a>)</p><figure><img alt="Linkerd policy, as seen from Buoyant Cloud" class="img img--max-fill img--center img--rounded" src=/2021/09/30/announcing-linkerd-2.11/buoyant-cloud-policy-mtls.png><figcaption>Linkerd policy, as seen by [Buoyant Cloud](https://buoyant.io/cloud)</figcaption></figure><h2 id=retries-for-http-requests-with-bodies>Retries for HTTP requests with bodies</h2><p>Retrying failed requests is a critical part of Linkerd&rsquo;s ability to improve the
+reliability of Kubernetes applications. Until now, for reasons of performance,
+Linkerd has only allowed retries for body-less requests, e.g. HTTP GETs. In
+2.11, Linkerd can also retry failed requests with bodies, including gRPC
+requests, with a maximum body size of 64KB.</p><h2 id=container-startup-ordering-workaround>Container startup ordering workaround</h2><p>Linkerd 2.11 now ensures, by default, that the <code>linkerd2-proxy</code> container is
+ready before any other containers in the pod are initialized. This is a
+workaround for Kubernetes&rsquo;s much-lamented lack of control over container
+startup ordering, and addresses a large class of tricky race conditions where
+application containers attempt to connect before the proxy is ready.</p><h2 id=even-smaller-faster-and-lighter>Even smaller, faster, and lighter</h2><p>As usual, Linkerd 2.11 continues our goal of keeping Linkerd the <a href=https://linkerd.io/2021/05/27/linkerd-vs-istio-benchmarks/ target=_blank rel=noopener>lightest,
+fastest possible service mesh for
+Kubernetes</a>.
+Relevant changes in 2.11 include:</p><ul><li>The control plane is down to just 3 deployments.</li><li>Linkerd&rsquo;s data plane &ldquo;micro-proxy&rdquo; is even smaller and faster thanks to the
+highly active Rust networking ecosystem.</li><li>SMI features have been mostly removed from the core control plane, and moved
+to an extension.</li><li>Linkerd images now use minimal &ldquo;distroless&rdquo; base images.</li></ul><h2 id=and-lots-more>And lots more!</h2><p>Linkerd 2.11 also has a tremendous list of other improvements, performance
+enhancements, and bug fixes, including:</p><ul><li>New CLI tab completion for Kubernetes resources.</li><li>All <code>config.linkerd.io</code> annotations can now be set on <code>Namespace</code> resources
+and they will serve as defaults for pods created in that namespace.</li><li>A new <code>linkerd check -o short</code> command with, you know, short output.</li><li>A new <em>Extensions</em> page in the dashboard</li><li><a href=https://linkerd.io/2021/05/07/fuzz-testing-for-linkerd/ target=_blank rel=noopener>Fuzz testing</a> for
+the proxy!</li><li>The proxy now sets informational <code>l5d-client-id</code> and <code>l5d-proxy-error</code>
+headers</li><li>Lots of improvements to Helm configurability and to <code>linkerd check</code></li><li>Experimental support for <code>StatefulSets</code> with <code>linkerd-multicluster</code></li><li>And lots more!</li></ul><p>See the <a href=https://github.com/linkerd/linkerd2/releases/tag/stable-2.11.0 target=_blank rel=noopener>full release
+notes</a> for
+details.</p><h2 id=whats-next-for-linkerd>What&rsquo;s next for Linkerd?</h2><p>2021 has been a incredible year for Linkerd. Recently, <a href=https://linkerd.io/2021/07/28/announcing-cncf-graduation/ target=_blank rel=noopener>Linkerd became the only
+CNCF graduated service
+mesh</a>, joining
+projects like Kubernetes, Prometheus, and Envoy at the foundation&rsquo;s highest
+level of maturity. Linkerd&rsquo;s benchmarks continue to show that it is
+<a href=https://linkerd.io/2021/05/27/linkerd-vs-istio-benchmarks/ target=_blank rel=noopener>dramatically faster and lighter than other service
+meshes</a>. The
+Linkerd community also recently introduced the <a href=https://linkerd.io/2021/08/05/announcing-the-linkerd-ambassador-program/ target=_blank rel=noopener>Linkerd Ambassador
+program</a>,
+recognizing those community members who demonstrate passion, engagement, and a
+commitment to sharing Linkerd with the border community, and organizations
+around the world are adopting Linkerd, often while <a href=https://nais.io/blog/posts/2021/05/changing-service-mesh.html target=_blank rel=noopener>coming
+from</a> <a href=https://blog.polymatic.systems/service-mesh-wars-goodbye-istio-b047d9e533c7 target=_blank rel=noopener>other
+meshes</a>.</p><p>In the next few Linkerd releases, we&rsquo;ll be working on additional types of
+policy, including client-side policy, including circuit breaking), mesh
+expansion to allow the data plane to run outside of Kubernetes, and for the
+rest of the <a href=https://github.com/linkerd/linkerd2/blob/main/ROADMAP.md target=_blank rel=noopener>Linkerd
+roadmap</a>. If you have
+feature requests, of course, we&rsquo;d love to hear them!</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a graduated project of the <a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing
+Foundation</a>. Linkerd is <a href=/2019/10/03/linkerds-commitment-to-open-governance/>committed to open
+governance.</a> If you have
+feature requests, questions, or comments, we&rsquo;d love to have you join our
+rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=/community/get-involved/>mailing lists</a>. Come and join the fun!</p><h2 id=photo-credit>Photo credit</h2><p>Photo by <a href="https://unsplash.com/@tjevans?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Tim
+Evans</a>
+on
+<a href="https://unsplash.com/s/photos/bank-vault?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

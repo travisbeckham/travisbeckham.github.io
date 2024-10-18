@@ -1,0 +1,177 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Workshop recap: Dynamic Request Routing and Circuit Breaking | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="This blog post is based on a workshop that I recently delivered at Buoyant’s
+Service Mesh Academy. If this seems
+interesting, check out the
+full recording!
+Linkerd 2.13 adds two long-requested features to Linkerd: dynamic request
+routing and circuit breaking.
+
+
+Dynamic request routing permits HTTP routing based on headers, HTTP method,
+etc.
+
+
+Circuit breaking is a resilience feature that allows Linkerd to stop sending
+requests to endpoints that fail too much.
+
+
+While Linkerd 2.12 has been able to do some dynamic request routing, Linkerd
+2.13 expands quite a bit on the feature. Circuit breaking is completely new in
+Linkerd 2.13."><meta property="og:url" content="https://travisbeckham.github.io/2023/06/13/dynamic-request-routing-circuit-breaking/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Workshop recap: Dynamic Request Routing and Circuit Breaking"><meta property="og:description" content="This blog post is based on a workshop that I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+Linkerd 2.13 adds two long-requested features to Linkerd: dynamic request routing and circuit breaking.
+Dynamic request routing permits HTTP routing based on headers, HTTP method, etc.
+Circuit breaking is a resilience feature that allows Linkerd to stop sending requests to endpoints that fail too much.
+While Linkerd 2.12 has been able to do some dynamic request routing, Linkerd 2.13 expands quite a bit on the feature. Circuit breaking is completely new in Linkerd 2.13."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-06-13T00:00:00+00:00"><meta property="article:modified_time" content="2023-06-13T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/06/13/dynamic-request-routing-circuit-breaking/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/06/13/dynamic-request-routing-circuit-breaking/cover.jpg"><meta name=twitter:title content="Workshop recap: Dynamic Request Routing and Circuit Breaking"><meta name=twitter:description content="This blog post is based on a workshop that I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+Linkerd 2.13 adds two long-requested features to Linkerd: dynamic request routing and circuit breaking.
+Dynamic request routing permits HTTP routing based on headers, HTTP method, etc.
+Circuit breaking is a resilience feature that allows Linkerd to stop sending requests to endpoints that fail too much.
+While Linkerd 2.12 has been able to do some dynamic request routing, Linkerd 2.13 expands quite a bit on the feature. Circuit breaking is completely new in Linkerd 2.13."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/06/13/dynamic-request-routing-circuit-breaking/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-06-13T00:00:00Z","dateModified":"2023-06-13T00:00:00Z","headline":"Workshop recap: Dynamic Request Routing and Circuit Breaking","image":"https://travisbeckham.github.io/2023/06/13/dynamic-request-routing-circuit-breaking/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Workshop recap: Dynamic Request Routing and Circuit Breaking</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>Jun 13, 2023 • 8 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/06/13/dynamic-request-routing-circuit-breaking/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><em>This blog post is based on a workshop that I recently delivered at Buoyant’s
+<a href=https://buoyant.io/service-mesh-academy target=_blank rel=noopener>Service Mesh Academy</a>. If this seems
+interesting, check out the
+<a href=https://buoyant.io/service-mesh-academy/circuit-breaking-and-dynamic-routing-deep-dive/ target=_blank rel=noopener>full recording</a>!</em></p><p>Linkerd 2.13 adds two long-requested features to Linkerd: <em>dynamic request
+routing</em> and <em>circuit breaking</em>.</p><ul><li><p>Dynamic request routing permits HTTP routing based on headers, HTTP method,
+etc.</p></li><li><p>Circuit breaking is a resilience feature that allows Linkerd to stop sending
+requests to endpoints that fail too much.</p></li></ul><p>While Linkerd 2.12 has been able to do some dynamic request routing, Linkerd
+2.13 expands quite a bit on the feature. Circuit breaking is completely new in
+Linkerd 2.13.</p><h2 id=dynamic-request-routing>Dynamic Request Routing</h2><p>In Linkerd 2.11 and earlier, the only mechanism for any sort of dynamic routing
+used the TrafficSplit extension and the <code>linkerd-smi</code> extension to support a
+coarse-grained routing behavior based on the service name and the desired
+percentage of traffic to be split. For example:</p><ul><li><p>Progressive delivery: 1% of the requests to the <code>foo</code> workload are sent to a
+new version (<code>foo-new</code>), while the remaining 99% continue to be routed to the
+original version. If all goes well, the percentages are shifted over time
+until all the requests are going to <code>foo-new</code>.</p></li><li><p>Multi-cluster/failover: All of the requests to the <code>foo</code> workload get routed
+to a different cluster via a mirrored <code>foo-west</code> Service.</p></li></ul><p>Linkerd 2.12 introduced support for basic header-based routing, using the
+HTTPRoute CRD from the Gateway API. This allowed for routing based on the value
+of a header, but it didn&rsquo;t support weighted routing at the same time.</p><p>Dynamic request routing in Linkerd 2.13 brings these two worlds together using
+the HTTPRoute CRD, and expands it further by supporting weighted routing based
+on request headers, verbs, or other attributes of the request (though not the
+request body). This is much more powerful than what was possible with 2.12 and
+earlier. For example:</p><ul><li><p>Progressive delivery is possible without using the <code>linkerd-smi</code> extension at
+all.</p></li><li><p>Progressive delivery can be combined with header-based routing, for example
+per-user canaries: use a header to select a particular group of users, then
+canary only that group of users using a new version of a workload. This
+enables early rollout of a new feature only for a specific group of users,
+while most users continue to use the stable version.</p></li><li><p>A/B testing anywhere in the call graph: Since dynamic request routing permits
+separating traffic based on headers or verbs, it&rsquo;s possible to split users
+into multiple groups and route each group to a distinct version of a workload.
+This allows for experimentation and comparison of different implementations or
+features.</p></li></ul><h3 id=sidebar-dynamic-request-routing-and-the-gateway-api>Sidebar: Dynamic Request Routing and the Gateway API</h3><p>The <a href=https://gateway-api.sigs.k8s.io/ target=_blank rel=noopener>Gateway API</a> is a Kubernetes SIG-Networking project started in 2020,
+primarily to address the challenges related to the proliferation of annotations
+in use on the Ingress resource. In 2022, the Gateway API project began the GAMMA
+(Gateway API for Mesh Management and Administration) initiative to explore how
+to use the Gateway API for mesh networking. Linkerd is an active participant in
+both efforts: the power and flexibility of the Gateway API makes it easier to
+expand Linkerd&rsquo;s capabilities while maintaining its overall best-in-class
+operational simplicity.</p><p>One important caveat, though, is that since the Gateway API was originally
+designed to manage ingress traffic - traffic from outside the cluster coming
+in - its conformance tests are not yet well-suited to service meshes, so Linkerd
+can&rsquo;t yet be fully conformant with the Gateway API. For this reason, Linkerd
+uses the HTTPRoute resource in the <code>policy.linkerd.io</code> APIGroup, rather than the
+official Gateway API APIgroup. There&rsquo;s work actively underway to improve this
+situation.</p><h3 id=dynamic-request-routing-examples>Dynamic Request Routing Examples</h3><p>First, a simple canary example. This example does a 50/50 split for requests to
+the <code>color</code> Service, routing half to the endpoints being the actual <code>color</code>
+Service and half to those behind the <code>color2</code> Service.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRoute</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>color-canary</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>parentRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>color</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Service</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>group</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>core</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681> </span><span style=color:#8b949e;font-style:italic># Match port numbers with what’s in the Service resource</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>rules</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>backendRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>color</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>weight</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>50</span><span style=color:#6e7681> </span><span style=color:#8b949e;font-style:italic># Adjust the weights to control balancing</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>backendRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>color2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>weight</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>50</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>I&rsquo;m being careful here about the distinction between a Service and the endpoints
+behind the Service, because the HTTPRoute acts on <em>requests sent to a particular
+service</em>, routing them to <em>endpoints behind a service</em>. This is why having
+<code>color</code> in the <code>parentRefs</code> stanza and also in one of the <code>backendRefs</code> stanzas
+works, without creating a loop.</p><p>Here&rsquo;s an example of A/B testing. Here, requests sent to the <code>smiley</code> Service
+with the header</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>X-Faces-User: testuser
+</span></span></code></pre></div><p>get routed to endpoints behind the <code>smiley2</code> Service, while other requests
+continue on to endpoints behind the <code>smiley</code> Service.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>policy.linkerd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>HTTPRoute</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>smiley-a-b</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>parentRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>smiley</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Service</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>group</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>core</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>rules</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>matches</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>headers</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>            </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>&#34;x-faces-user&#34;</span><span style=color:#6e7681> </span><span style=color:#8b949e;font-style:italic># X-Faces-User: testuser goes to smiley2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>              </span><span style=color:#7ee787>value</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>&#34;testuser&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>backendRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>smiley2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>backendRefs</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>smiley</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>One critical point about the A/B test: Linkerd can do dynamic request routing
+anywhere, but of course if you want to route on a header, you need to make sure
+that header is present at the place you want to use it for routing! This may
+mean that you need to be careful to propagate headers through the various
+workloads of your application.</p><p>You can find more details about dynamic request routing in its documentation, at
+<a href=https://linkerd.io/2/tasks/configuring-dynamic-request-routing/ target=_blank rel=noopener>https://linkerd.io/2/tasks/configuring-dynamic-request-routing/</a>.</p><h2 id=circuit-breaking>Circuit Breaking</h2><p>Circuit breaking is new to Linkerd 2.13, but it&rsquo;s been long requested by users.
+It&rsquo;s a mechanism to try to avoid overwhelming a failing workload endpoint with
+additional traffic:</p><ul><li>A workload endpoint starts to fail.</li><li>Linkerd detects failures from the endpoint and temporarily stops routing
+requests to that endpoint (<em>opening</em> the breaker).</li><li>After a little while, a test request is sent.</li><li>If the test succeeds, thecircuit breaker is <em>closed</em> again, allowing requests
+to resume being delivered.</li></ul><p>In Linkerd 2.13, circuit breaking is a little limited:</p><ul><li>Circuit breakers can only be opened when a certain number of consecutive
+failures occur.</li><li>&ldquo;Failure&rdquo; means an HTTP 5xx response; Linkerd doesn&rsquo;t currently support
+response classification for circuit breakers.</li><li>Circuit breakers are configured through annotations on a Service, with all the
+relevant annotations containing the term &ldquo;failure-accrual&rdquo; in their names
+(from the internal name for circuit breaking in the code).</li></ul><p>Circuit breakers in Linkerd are expected to gain functionality rapidly, so keep
+an eye out as new releases happen (and the annotation approach should be
+supplanted with Gateway API CRDs).</p><h2 id=circuit-breaking-example>Circuit Breaking Example</h2><p>To break the circuit after four consecutive request failures, apply these
+annotations to a Service:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>balancer.linkerd.io/failure-accrual: consecutive
+</span></span><span style=display:flex><span>balancer.linkerd.io/failure-accrual-consecutive-max-failures: 4
+</span></span></code></pre></div><p>The <code>failure-accrual: consecutive</code> annotation switches on circuit breaking, and
+sets it to the &ldquo;consecutive failure&rdquo; mode (which is the only supported mode in
+2.13).</p><p>All configuration for the &ldquo;consecutive failure&rdquo; mode of circuit breaking uses
+annotations that start with <code>failure-accrual-consecutive-</code>; the
+<code>failure-accrual-consecutive-max-failures</code> annotation sets the number of
+consecutive failures after which the circuit breaker will open.</p><p>Try reenabling traffic after 30 seconds:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>balancer.linkerd.io/failure-accrual-consecutive-min-penalty: 30s
+</span></span></code></pre></div><p>(This is for the first attempt. After that, the delay grows exponentially.)</p><p>Don’t ever wait more than 120 seconds between retries:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>balancer.linkerd.io/failure-accrual-consecutive-max-penalty: 120s
+</span></span></code></pre></div><p>More information on circuit breaking is available in its documentation, at
+<a href=https://linkerd.io/2/tasks/circuit-breakers/ target=_blank rel=noopener>https://linkerd.io/2/tasks/circuit-breakers/</a>.</p><h2 id=gotchas>Gotchas</h2><p>The biggest gotcha of them all is that in Linkerd 2.13, <strong>ServiceProfiles do not
+compose with dynamic request routing and circuit breaking</strong>.</p><p>Getting specific, this means that when a ServiceProfile defines routes, it takes
+precedence over other HTTPRoutes with conflicting routes, and it also takes
+precedence over circuit breakers associated with the workloads referenced in the
+ServiceProfile. This is expected to be the case for the foreseeable future, to
+minimize surprises when upgrading from a version of Linkerd without the new
+features.</p><p>The challenge here, of course, is that there are still several things that
+require ServiceProfiles in Linkerd 2.13 (for example, retries and timeouts). The
+Linkerd team is actively working to quickly make all of this better, with a
+particular short-term focus on rapidly bringing HTTPRoutes to feature parity
+with ServiceProfiles.</p><h3 id=debugging-dynamic-request-routing-and-circuit-breaking>Debugging Dynamic Request Routing and Circuit Breaking</h3><p>The most typical failure you&rsquo;ll see when trying to use these new features is to
+enable a new feature and see that it doesn&rsquo;t seem to be active. There are some
+simple rules of thumb for debugging:</p><ul><li><p>First, <em>check for ServiceProfiles</em>. Remember that conflicting ServiceProfiles
+will always disable HTTPRoutes or circuit breakers.</p></li><li><p>Second, you may need to restart Pods after removing conflicting
+ServiceProfiles. This is because the Linkerd proxy needs to determine whether
+it is running in 2.12 mode or 2.13 mode, and in some situations it&rsquo;s still
+possible for it not to shift between modes smoothly.</p></li><li><p>Finally, there&rsquo;s a new <code>linkerd diagnostics policy</code> command, which will dump a
+large amount of internal Linkerd state describing what exactly the control
+plane is doing with routing. It&rsquo;s <em>extremely</em> verbose, but can show you an
+enormous amount of information that can help with debugging problems.</p></li></ul><h2 id=dynamic-request-routing-and-circuit-breaking>Dynamic Request Routing and Circuit Breaking</h2><p>Taken together, dynamic request routing and circuit breaking are two important
+new additions to Linkerd 2.13. While still a bit limited in 2.13, keep an eye
+out: we have big plans for these features as Linkerd&rsquo;s development continues.</p><hr><p><em>If you want more on this topic, check out the
+<a href=https://buoyant.io/service-mesh-academy/circuit-breaking-and-dynamic-routing-deep-dive/ target=_blank rel=noopener>Circuit Breaking and Dynamic Request Routing Deep Dive</a>
+Service Mesh Academy workshop for hands-on exploration of everything I&rsquo;ve talked
+about here! And, as always, feedback is always welcome &ndash; you can find me as
+<code>@flynn</code> on the <a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a>.</em></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2023/06/21/linkerd-edge-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/06/21/linkerd-edge-roundup/>Linkerd Edge Release Roundup: 21 June 2023</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Jun 21, 2023 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2023/05/15/real-world-gitops/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/05/15/real-world-gitops/>Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>May 15, 2023 • 26 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

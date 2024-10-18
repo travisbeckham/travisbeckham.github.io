@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog | Linkerd</title><link>https://travisbeckham.github.io/blog/</link><description>Recent content in Blog for Linkerd</description><generator>Hugo 0.135.0</generator><language>en-us</language><lastBuildDate>Tue, 15 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://travisbeckham.github.io/blog/feed.xml" rel="self" type="application/rss+xml"/><item><title>Linkerd Edge Release Roundup: October 2024</title><link>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</link><pubDate>Tue, 15 Oct 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the October 2024 Edge Release Roundup post, where we dive into the
+most recent edge releases to help keep everyone up to date on the latest and
+greatest!&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Edge releases are a snapshot of our current development work on &lt;code>main&lt;/code>; by
+definition, they always have the most recent features but they may have
+incomplete features, features that end up getting rolled back later, or (like
+all software) even bugs. That said, edge releases &lt;em>are&lt;/em> intended for production
+use, and go through a rigorous set of automated and manual tests before being
+released.&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: September 2024</title><link>https://travisbeckham.github.io/2024/09/06/linkerd-edge-release-roundup/</link><pubDate>Fri, 06 Sep 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/09/06/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the September 2024 Edge Release Roundup post, where we dive into the
+most recent edge releases to help keep everyone up to date on the latest and
+greatest!&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Edge releases are a snapshot of our current development work on &lt;code>main&lt;/code>; by
+definition, they always have the most recent features but they may have
+incomplete features, features that end up getting rolled back later, or (like
+all software) even bugs. That said, edge releases &lt;em>are&lt;/em> intended for production
+use, and go through a rigorous set of automated and manual tests before being
+released.&lt;/p></description></item><item><title>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</title><link>https://travisbeckham.github.io/2024/08/13/announcing-linkerd-2.16/</link><pubDate>Tue, 13 Aug 2024 00:00:00 +0000</pubDate><author>William Morgan</author><guid>https://travisbeckham.github.io/2024/08/13/announcing-linkerd-2.16/</guid><description>&lt;p>Today we&amp;rsquo;re happy to announce &lt;a href="https://travisbeckham.github.io/releases/#linkerd-216">Linkerd 2.16&lt;/a>, a major
+step forward for Linkerd that adds a whole host of new features, including
+support for IPv6; an &amp;ldquo;audit mode&amp;rdquo; for Linkerd&amp;rsquo;s zero trust security policies; a
+new implementation of retries, timeouts, and per-route metrics for HTTPRoute and
+GPRCRoute resources; and much more.&lt;/p>
+&lt;h2 id="new-route-metrics-retries-and-timeouts">New route metrics, retries, and timeouts&lt;/h2>
+&lt;p>The 2.16 release continues our goal of ensuring Linkerd is the truly
+&lt;em>future-proof service mesh.&lt;/em> We expect the
+&lt;a href="https://gateway-api.sigs.k8s.io/" target="_blank" rel="noopener">Gateway API&lt;/a> to emerge as the standard for
+traffic configuration in the Kubernetes space, and when that happens, Linkerd
+users will be ready. (Of course, we&amp;rsquo;re also actively involved in the Gateway API
+to ensure the evolving design continues to make sense for Linkerd users!)&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: August 2024</title><link>https://travisbeckham.github.io/2024/08/05/linkerd-edge-release-roundup/</link><pubDate>Mon, 05 Aug 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/08/05/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the August 2024 Edge Release Roundup post, where we dive into the
+most recent edge releases to help keep everyone up to date on the latest and
+greatest!&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Edge releases are a snapshot of our current development work on &lt;code>main&lt;/code>; by
+definition, they always have the most recent features but they may have
+incomplete features, features that end up getting rolled back later, or (like
+all software) even bugs. That said, edge releases &lt;em>are&lt;/em> intended for production
+use, and go through a rigorous set of automated and manual tests before being
+released.&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: July 2024</title><link>https://travisbeckham.github.io/2024/07/01/linkerd-edge-release-roundup/</link><pubDate>Mon, 01 Jul 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/07/01/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the July 2024 Edge Release Roundup post, where we dive into the most
+recent edge releases to help keep everyone up to date on the latest and
+greatest!&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Remember, edge releases are a snapshot of our current development work on
+&lt;code>main&lt;/code>; by definition, they always have the most recent features but they may
+have incomplete features, features that end up getting rolled back later, or
+(like all software) even bugs. That said, edge releases &lt;em>are&lt;/em> intended for
+production use, and go through a rigorous set of automated and manual tests
+before being released.&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: June 2024</title><link>https://travisbeckham.github.io/2024/06/06/linkerd-edge-release-roundup/</link><pubDate>Thu, 06 Jun 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/06/06/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the June 2024 Edge Release Roundup post, where we dive into the most
+recent edge releases to help keep everyone up to date on the latest and
+greatest!&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Remember, edge releases are a snapshot of our current development work on
+&lt;code>main&lt;/code>; by definition, they always have the most recent features but they may
+have incomplete features, features that end up getting rolled back later, or
+(like all software) even bugs. That said, edge releases &lt;em>are&lt;/em> intended for
+production use, and go through a rigorous set of automated and manual tests
+before being released.&lt;/p></description></item><item><title>Linkerd and SMI</title><link>https://travisbeckham.github.io/2024/05/24/linkerd-and-smi/</link><pubDate>Fri, 24 May 2024 00:00:00 +0000</pubDate><author>William Morgan</author><guid>https://travisbeckham.github.io/2024/05/24/linkerd-and-smi/</guid><description>&lt;p>Earlier this week at &lt;a href="https://events.linuxfoundation.org/events/kubecon-cloudnativecon-europe-2019/" target="_blank" rel="noopener">Kubecon
+EU&lt;/a>,
+Microsoft announced the &lt;a href="https://smi-spec.io" target="_blank" rel="noopener">Service Mesh Interface&lt;/a> (SMI).
+SMI is a specification that exposes core service mesh features like telemetry,
+traffic shifting, and policy, purely via Kubernetes primitives.&lt;/p>
+&lt;p>The Linkerd community has been working heavily with our friends from Microsoft
+and Hashicorp on SMI for the past few months. In fact, the &lt;a href="https://github.com/deislabs/smi-spec/graphs/contributors" target="_blank" rel="noopener">top two
+contributors to SMI&lt;/a>
+are Linkerd&amp;rsquo;s &lt;a href="https://github.com/grampelberg" target="_blank" rel="noopener">Thomas Rampelberg&lt;/a> and
+Hashicorp&amp;rsquo;s &lt;a href="https://github.com/nicholasjackson" target="_blank" rel="noopener">Nick Jackson&lt;/a>&amp;mdash;a healthy sign
+of serious community involvement.&lt;/p></description></item><item><title>Building a Secure, Reliable, Observable IDP with Backstage &amp; Linkerd</title><link>https://travisbeckham.github.io/2024/05/23/building-a-secure-reliable-observable-idp-with-backstage-linkerd/</link><pubDate>Thu, 23 May 2024 00:00:00 +0000</pubDate><author>Catherine Paganini</author><guid>https://travisbeckham.github.io/2024/05/23/building-a-secure-reliable-observable-idp-with-backstage-linkerd/</guid><description>&lt;p>Smooth workflows are critical in the cloud-native world. This CNCF Cloud Native
+Live session explores building a rock-solid Internal Developer Platform (IDP)
+Backstage that empowers developers with self-service tools while
+streamlining security and observability. Watch the recording with Linkerd Tech
+Evangelist Flynn and Backstage Maintainer Ben Lambert as they show you how a
+service mesh like Linkerd can supercharge your IDP, ensuring seamless
+communication and clear visibility.&lt;/p>
+
+
+ 
+ &lt;div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+ &lt;iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/43Yq24I0KNI?autoplay=0&amp;controls=1&amp;end=0&amp;loop=0&amp;mute=0&amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"
+ >&lt;/iframe>
+ &lt;/div></description></item><item><title>Linkerd Edge Release Roundup: April 2024</title><link>https://travisbeckham.github.io/2024/04/25/linkerd-edge-release-roundup/</link><pubDate>Thu, 25 Apr 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/04/25/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the April 2024 Edge Release Roundup post, where we dive into the most
+recent edge releases to help keep everyone up to date on the latest and
+greatest! This month, we&amp;rsquo;re covering the releases from &lt;code>edge-24.4.5&lt;/code> back to
+&lt;code>edge-24.3.3&lt;/code> &amp;ndash; there&amp;rsquo;s a lot here so we&amp;rsquo;ll get right into it.&lt;/p>
+&lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
+&lt;p>Remember, edge releases are a snapshot of our current development work on
+&lt;code>main&lt;/code>; by definition, they always have the most recent features but they may
+have incomplete features, features that end up getting rolled back later, or
+(gasp!) even bugs. If you&amp;rsquo;re running edge releases, it&amp;rsquo;s &lt;em>very&lt;/em> important that
+you send us feedback on how things are going for you!&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: March 2024</title><link>https://travisbeckham.github.io/2024/03/12/linkerd-edge-release-roundup/</link><pubDate>Tue, 12 Mar 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/03/12/linkerd-edge-release-roundup/</guid><description>&lt;p>With the changes to Linkerd&amp;rsquo;s release model, edge releases have clearly become
+more important! In light of that, we&amp;rsquo;ll be doing these Edge Release Roundup
+posts every month, to help keep everyone up to date on the latest and greatest.
+Going forward, we&amp;rsquo;ll cover everything since the previous roundup, but for this
+first post of the new series, we&amp;rsquo;ll take a longer look back, and tackle all the
+edge releases from February to the present.&lt;/p></description></item></channel></rss>

@@ -1,0 +1,544 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="This blog post is based on a workshop that Russ Parmer of WeaveWorks and I
+delivered at Buoyant’s
+Service Mesh Academy. If this seems
+interesting, check out the
+full recording!
+&ldquo;GitOps&rdquo; and &ldquo;service mesh&rdquo; may not be things you immediately think of together
+– but maybe they should be! These two wildly different technologies are each
+enormously capable independently, and combined they deliver far more than the
+sum of their parts. In this blog post, I&rsquo;ll walk you through what you need to
+know to use Flux, Flagger, and Linkerd together for successful GitOps in the
+real world."><meta property="og:url" content="https://travisbeckham.github.io/2023/05/15/real-world-gitops/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd"><meta property="og:description" content="This blog post is based on a workshop that Russ Parmer of WeaveWorks and I delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+“GitOps” and “service mesh” may not be things you immediately think of together – but maybe they should be! These two wildly different technologies are each enormously capable independently, and combined they deliver far more than the sum of their parts. In this blog post, I’ll walk you through what you need to know to use Flux, Flagger, and Linkerd together for successful GitOps in the real world."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-05-15T00:00:00+00:00"><meta property="article:modified_time" content="2023-05-15T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/05/15/real-world-gitops/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/05/15/real-world-gitops/cover.png"><meta name=twitter:title content="Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd"><meta name=twitter:description content="This blog post is based on a workshop that Russ Parmer of WeaveWorks and I delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+“GitOps” and “service mesh” may not be things you immediately think of together – but maybe they should be! These two wildly different technologies are each enormously capable independently, and combined they deliver far more than the sum of their parts. In this blog post, I’ll walk you through what you need to know to use Flux, Flagger, and Linkerd together for successful GitOps in the real world."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/05/15/real-world-gitops/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-05-15T00:00:00Z","dateModified":"2023-05-15T00:00:00Z","headline":"Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd","image":"https://travisbeckham.github.io/2023/05/15/real-world-gitops/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Workshop recap: Real-World GitOps with Flux, Flagger, and Linkerd</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>May 15, 2023 • 26 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/05/15/real-world-gitops/cover.png alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><em>This blog post is based on a workshop that Russ Parmer of WeaveWorks and I
+delivered at Buoyant’s
+<a href=https://buoyant.io/service-mesh-academy target=_blank rel=noopener>Service Mesh Academy</a>. If this seems
+interesting, check out the
+<a href=https://buoyant.io/service-mesh-academy/real-world-gitops-with-flagger-and-linkerd target=_blank rel=noopener>full recording</a>!</em></p><p>&ldquo;GitOps&rdquo; and &ldquo;service mesh&rdquo; may not be things you immediately think of together
+– but maybe they should be! These two wildly different technologies are each
+enormously capable independently, and combined they deliver far more than the
+sum of their parts. In this blog post, I&rsquo;ll walk you through what you need to
+know to use Flux, Flagger, and Linkerd together for successful GitOps in the
+real world.</p><h2 id=why-are-we-here>Why Are We Here?</h2><p>First, though, let&rsquo;s talk a bit about what we can - and can&rsquo;t - really do in the
+structure of a static-text blog post. <strong>This post will not make you a GitOps
+expert by itself.</strong> GitOps is complex, and there&rsquo;s no actual substitute for
+practice. You can&rsquo;t get that from reading a blog post.</p><p>What we <em>can</em> deliver here, though, is a careful look at the good, the bad, and
+the ugly of making GitOps actually work. We&rsquo;ll talk about concepts and
+conventions, about what works well and what doesn&rsquo;t, and we&rsquo;ll equip you to get
+the most out of the practice you put in later.</p><p>Finally, don&rsquo;t forget that we have a ready-made demo repo for you to practice
+with! You can find that at <a href=https://github.com/BuoyantIO/gitops-linkerd target=_blank rel=noopener>https://github.com/BuoyantIO/gitops-linkerd</a> &ndash;
+check out its <a href=https://github.com/BuoyantIO/gitops-linkerd/blob/main/README.md target=_blank rel=noopener>README.md</a> for the full instructions.</p><hr><h2 id=a-quick-introduction-to-gitops>A Quick Introduction to GitOps</h2><p>If you&rsquo;re completely new to GitOps, you may find all the definitions talking
+about &ldquo;continuous deployment&rdquo; and &ldquo;single immutable source of truth&rdquo; to be more
+confusing than helpful. A simple way to view GitOps for our purposes is that
+it&rsquo;s a way to manage configuration of a cluster by putting the configuration we
+want in a git repository, then having software that makes the cluster match the
+repo.</p><p>In other words, you don&rsquo;t make changes to your cluster by running
+<code>kubectl apply</code>: you do it with a Git commit.</p><p>This might seem like a step backward, but it&rsquo;s a wonderful way to accomplish two
+things that are very important in production:</p><ul><li>You can always know exactly what configuration your cluster is running.</li><li>You can always know who made a particular change.</li></ul><p>These two things open the door to a host of good things because <em>knowing the
+state of the cluster means you can easily replicate it</em>. Knowledge is power.</p><p>Under the hood, we&rsquo;ll use Flux and Flagger, both from WeaveWorks, to make this
+work.</p><h3 id=flux>Flux</h3><p>A Kubernetes cluster can&rsquo;t natively interact with a git repo. Flux is a tool
+that bridges the gap: a Flux agent runs in your cluster and watches for changes
+in the repo and in the cluster. Whenever it notices a change (in either place),
+it does whatever it needs to do to make the cluster look like the repo.</p><p><strong>Note</strong>: Flux will only make the <em>cluster</em> look like the <em>repo</em>. There&rsquo;s no
+provision to go the other direction, because it would be a terrible idea! The
+whole point of GitOps is that the git repo holds the truth of what state you
+want, so allowing the repo to modify it would not be an antipattern.</p><p>Flux is fairly simple: it can read Git repos from GitHub or GitLab, and you
+point it to a directory in the repo that contains YAML files defining Flux
+<em>Kustomizations</em>. A Kustomization definition includes three critical components:</p><ul><li><p>The <em>source</em> tells Flux where to go to read the base resources that should
+exist in the cluster. A source can be a directory in a Git repo or a Helm
+chart.</p></li><li><p>An optional set of <em>patches</em>, which are standard JSONpatch definitions, tell
+Flux how to modify the base resources before applying them to the cluster.</p></li><li><p>An optional list of <em>dependencies</em> tells Flux which other Kustomizations must
+be applied before applying this one.</p></li></ul><p>The combination of these three is quite powerful while being relatively simple
+(though I&rsquo;ll be the first to acknowledge that JSONpatch isn&rsquo;t always pleasant to
+use). We&rsquo;ll dig into how to approach Kustomizations, and what a typical
+Kustomization might look like, shortly.</p><h3 id=flagger>Flagger</h3><p>Flagger is a companion to Flux that&rsquo;s specifically dealing with progressive
+delivery. This is the idea that when you deploy a new version of a workload, you
+should slowly ramp traffic over to it to make sure that the new version will
+work, rather than just instantly cutting all the traffic over to the new
+(possibly broken) version.</p><p>What can initially seem strange about Flagger is that you don&rsquo;t explicitly
+supply a resource that says &ldquo;please do a progressive rollout now&rdquo;. Instead, you
+just edit a Deployment, and Flagger takes it from there: it notices any change
+to objects under its management and <em>automatically</em> tweaks things in the cluster
+to set up a progressive rollout.</p><p>This means that Flagger needs a a way to control the amount of traffic that goes
+to the new version. It doesn&rsquo;t do this directly: instead, it needs to alter
+configuration for some other piece of the system to actually do the traffic
+shifting. Flagger has a few different options for this:</p><ul><li><p>For workloads at the top of the call graph, it can work with several ingress
+controllers directly;</p></li><li><p>It can use SMI TrafficSplits for traffic anywhere in the call graph; or</p></li><li><p>It can use Gateway API HTTPRoutes.</p></li></ul><p>(At the moment, Linkerd relies on the SMI TrafficSplit mechanism. More on this
+in a bit.)</p><hr><h2 id=a-quick-introduction-to-linkerd>A Quick Introduction to Linkerd</h2><p>If you haven&rsquo;t run across Linkerd before now, it&rsquo;s a service mesh: an
+infrastructure layer providing security, reliability, and observability features
+at a platform level, without having to modify your application. It&rsquo;s currently
+the only CNCF graduated service mesh, in fact, offering excellent security,
+best-in-class operational simplicity, and the least overhead of any production
+service mesh.</p><p>Like most other meshes, Linkerd works by placing a sidecar proxy next to each
+workload container, and allowing the sidecar to intercept all traffic to and
+from the workload. This low-level access permits Linkerd to have enormous
+control and visibility over what&rsquo;s happening with network communications in the
+cluster.</p><p>Linkerd supports both the SMI TrafficSplit resource and (as of 2.12) the Gateway
+API HTTPRoute resource. However, in 2.12 and 2.13, Linkerd&rsquo;s HTTPRoute support
+is limited, meaning that Flagger needs to use the SMI TrafficSplit interface.</p><hr><h2 id=putting-it-into-practice-flux>Putting It Into Practice: Flux</h2><p>As with many things, the jump from basic theory to actual practice can be
+tricky. A good way to start is with the demo repo mentioned above,
+<a href=https://github.com/BuoyantIO/gitops-linkerd target=_blank rel=noopener>https://github.com/BuoyantIO/gitops-linkerd</a>. Its <a href=https://github.com/BuoyantIO/gitops-linkerd/blob/main/README.md target=_blank rel=noopener>README.md</a> has full
+instructions for how to get everything running, but let&rsquo;s hit the highlights and
+the gotchas here too.</p><p>You&rsquo;ll need to start by having an empty cluster, a working <code>kubectl</code> command,
+and the <code>flux</code> CLI. Check out <a href=https://fluxcd.io/flux/installation/ target=_blank rel=noopener>https://fluxcd.io/flux/installation/</a> for full
+instructions, but the easy way on Mac and Linux is
+<code>brew install fluxcd/tap/flux</code>.</p><h3 id=repo-layout-and-flux-bootstrap>Repo Layout and <code>flux bootstrap</code></h3><p>Something very important to understand is that, when working with Flux, you&rsquo;ll
+generally set up all your Kustomizations, install Flux to your local machine,
+then run <code>flux bootstrap</code> to tell Flux to set up everything in the cluster for
+you! You don&rsquo;t set up the cluster by hand at any point.</p><p>When you run <code>flux bootstrap</code>, you tell Flux the git repo to use, and the branch
+and path within that repo to to start looking in your repo for its
+configuration. This brings up two really important points:</p><ol><li><p>Flux will need access to your Git repo, which is typically going to mean that
+it&rsquo;ll need access to GitHub or GitLab, which means you&rsquo;ll need to set up an
+access token for Flux to use.</p><p>For full details here, check out
+<a href=https://fluxcd.io/flux/installation/#bootstrap target=_blank rel=noopener>https://fluxcd.io/flux/installation/#bootstrap</a> &ndash; but the gotcha is that
+Flux needs to be able to write as well as read (for example, with GitHub it
+needs to be able to create deploy keys). <strong>Read carefully</strong> about the
+permissions to set up the token.</p></li><li><p>If you&rsquo;re trying to understand a Flux setup, <strong>you</strong> will need to know what
+branch and path were given to <code>flux bootstrap</code>, so that you&rsquo;ll know where to
+start reading to figure out what&rsquo;s going on.</p></li></ol><p>In this blog post, we&rsquo;re not going to include the full <code>flux bootstrap</code> command
+for the <code>gitops-linkerd</code>: we want to focus on concepts and gotchas, not all the
+details of setting up Git permissions and such. Check out the <code>README.md</code> in the
+<code>gitops-linkerd</code> repo for all the bootstrap details.</p><p>However, it&rsquo;s very much worth looking at a couple of things in our
+<code>gitops-linkerd</code> repo&rsquo;s configuration. The starting point for its configuration
+is the <code>clusters/my-cluster</code> directory on the <code>main</code> branch, in which you&rsquo;ll
+find all the needed definitions for the cluster infrastructure <em>and</em> a reference
+to another repo for the application itself. If you want to use this for your own
+Flux/Flagger/Linkerd setup, a good start would be to leave the cluster
+infrastructure alone, but to replace the application definition with your own.</p><p><code>clusters/my-cluster</code> uses a fairly typical Flux layout:</p><ul><li><p><code>infrastructure.yaml</code> tells Flux about cluster infrastructure to set up;</p></li><li><p><code>apps.yaml</code> tells Flux about the application(s) we want to run over that
+infrastructure; and</p></li><li><p><code>flux-system</code> is a directory with customization of Flux itself. We&rsquo;re not
+going to get into <code>flux-system</code> in this blog post, but it&rsquo;s good to know what
+it is.</p></li></ul><p>The split between &ldquo;infrastructure&rdquo; and &ldquo;app&rdquo; is blurry, and largely convention,
+but if you want to use <code>gitops-linkerd</code> as the basis of your own cluster
+definition, you can likely focus on <code>apps.yaml</code> and leave the cluster
+infrastructure alone at first.</p><h3 id=gitops-linkerd-cluster-infrastructure><code>gitops-linkerd</code> Cluster Infrastructure</h3><p><code>infrastructure.yaml</code> defines five separate components for cluster
+infrastructure. Each of these is represented by a separate document in this YAML
+file:</p><ul><li>cert-manager</li><li>Linkerd</li><li>NGINX</li><li>Flagger</li><li>Weave GitOps</li></ul><p>(Recall that Flux itself is the only thing we install by hand. Also, Weave
+GitOps is a dashboard for Flux; check it out at
+<a href=https://www.cncf.io/blog/2023/04/24/how-to-use-weave-gitops-as-your-flux-ui/ target=_blank rel=noopener>https://www.cncf.io/blog/2023/04/24/how-to-use-weave-gitops-as-your-flux-ui/</a>.)</p><p>Importantly, <code>infrastructure.yaml</code> also defines the dependencies between these
+components; this is an especially powerful aspect of Flux. We&rsquo;ll take a quick
+look at the first two elements here: <code>cert-manager</code> and <code>linkerd</code>.</p><h4 id=the-cert-manager-component>The <code>cert-manager</code> component</h4><p>The first document in <code>infrastructure.yaml</code> looks like this:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>kustomize.toolkit.fluxcd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Kustomization</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>cert-manager</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1h</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>retryInterval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>timeout</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>5m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>prune</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>wait</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>sourceRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>GitRepository</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>path</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>./infrastructure/cert-manager</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>There are few things to understand here:</p><ul><li><p><code>name: cert-manager</code> sets the name of the Kustomization. This is how we&rsquo;ll
+refer to this component when describing dependencies.</p></li><li><p><code>namespace: flux-system</code> places the Kustomization itself in the <code>flux-system</code>
+namespace; this does not mean that cert-manager will live in <code>flux-system</code>,
+though.</p><p>By convention, <code>flux-system</code> is the home for core elements of cluster
+infrastructure, with other namespaces used for applications.</p></li><li><p>There&rsquo;s no <code>dependsOn</code> attribute, so this Kustomization doesn&rsquo;t depend on
+anything.</p></li><li><p><code>sourceRef</code> is a bit magic: referring to the <code>flux-system</code> <code>GitRepository</code>
+really means &ldquo;the same Git repo as the Kustomization itself&rdquo;.</p></li><li><p><code>path: ./infrastructure/cert-manager</code> tells us where in the source to look for
+more files for this Kustomization.</p></li><li><p><code>wait: true</code> means that Flux will wait for everything installed to be ready
+before proceeding with other Kustomizations.</p></li><li><p><code>interval: 1h</code> means that Flux will check once an hour to see if there are new
+changes that need to be handled.</p></li></ul><p>If we look into <code>./infrastructure/cert-manager</code>, we&rsquo;ll find a few files:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>kustomization.yaml
+</span></span><span style=display:flex><span>namespace.yaml
+</span></span><span style=display:flex><span>release.yaml
+</span></span><span style=display:flex><span>repository.yaml
+</span></span></code></pre></div><p>The place to start reading is always <code>kustomization.yaml</code>, which is simple here:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>kustomize.config.k8s.io/v1beta1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Kustomization</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>cert-manager</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>resources</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>namespace.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>repository.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>release.yaml</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>This tells Flux to apply those three YAML files. We&rsquo;re not going to dig too far
+into them here - the <code>gitops-linkerd</code> demo goes into much more detail - but it&rsquo;s
+important to know that</p><ul><li><code>namespace.yaml</code> creates the <code>cert-manager</code> namespace;</li><li><code>repository.yaml</code> tells Flux to <code>helm repo add</code> a Helm repository; and</li><li><code>release.yaml</code> tells Flux to <code>helm install</code> a chart from the repo added by
+<code>repository.yaml</code>.</li></ul><p>Note that this is actually an <em>unordered</em> list: <code>kustomize</code> automatically sorts
+all the resources contained in all of these files to make sure that the the
+resources it&rsquo;s working with are applied in the correct order.</p><p>We&rsquo;re going to leave the deep dive into these files for the <code>gitops-linkerd</code>
+demo itself, except for one note: if you look at <code>repository.yaml</code> and
+<code>release.yaml</code>, you&rsquo;ll see that they define resources in the <code>cert-manager</code>
+namespace, not the <code>flux-system</code> namespace. This is a pattern you&rsquo;ll see again
+and again: the resources managed by the Kustomization should go in a namespace
+appropriate for the component being managed.</p><p>So the three important concepts to take away from this are:</p><ol><li>You don&rsquo;t have to apply any patches in a Kustomization, despite its name.</li><li>You can apply Kubernetes resources <em>and</em> higher-level Flux resources in a
+Kustomization.</li><li>The resources created and managed by the Kustomization belong in an
+appropriate namespace for the component, not <code>flux-system</code>.</li></ol><p>You&rsquo;ll see these same concepts over and over as you look at the <code>gitops-linkerd</code>
+definitions.</p><h4 id=the-linkerd-component>The <code>linkerd</code> component</h4><p>The second document in <code>infrastructure.yaml</code> defines the <code>linkerd</code> component:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>kustomize.toolkit.fluxcd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Kustomization</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>linkerd</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>dependsOn</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>cert-manager</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1h</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>retryInterval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>timeout</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>5m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>prune</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>wait</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>sourceRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>GitRepository</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>path</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>./infrastructure/linkerd</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>Much of this lines up with the <code>cert-manager</code> Kustomization: we have a <code>name</code>,
+we&rsquo;re still in the <code>flux-system</code> namespace, we&rsquo;ll find more files in
+<code>./infrastructure/linkerd</code>, etc.</p><p>The main difference is the new <code>dependsOn</code> attribute, which says that the
+<code>linkerd</code> Kustomization depends on the <code>cert-manager</code> Kustomization. (Note, too,
+that <code>dependsOn</code> takes an array value, so you can list many dependencies.) This
+is one of the most powerful features of Flux: defining complex start ordering is
+just a matter of explaining what depends on what, then letting Flux do all the
+hard work.</p><p>Taking a quick look into the <code>./infrastructure/linkerd</code> directory, we&rsquo;ll find
+quite a lot more to read than we did for <code>cert-manager</code>:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>README.md
+</span></span><span style=display:flex><span>ca.crt
+</span></span><span style=display:flex><span>ca.key
+</span></span><span style=display:flex><span>kustomization.yaml
+</span></span><span style=display:flex><span>kustomizeconfig.yaml
+</span></span><span style=display:flex><span>linkerd-certs.yaml
+</span></span><span style=display:flex><span>linkerd-control-plane.yaml
+</span></span><span style=display:flex><span>linkerd-crds.yaml
+</span></span><span style=display:flex><span>linkerd-smi.yaml
+</span></span><span style=display:flex><span>linkerd-viz.yaml
+</span></span><span style=display:flex><span>namespaces.yaml
+</span></span><span style=display:flex><span>repositories.yaml
+</span></span></code></pre></div><p>As before, though, the place to start reading is still <code>kustomization.yaml</code>.
+It&rsquo;s more complex, since we&rsquo;re installing four separate Linkerd components (its
+CRDs, the control plane, the SMI extension, and the Viz extension) and we need
+to configure Linkerd to use custom secrets from cert-manager - but you&rsquo;ll be
+able to see it all laid out in the files.</p><p>Again, we&rsquo;ll mostly leave the deep dive for the <code>gitops-linkerd</code> demo, but it&rsquo;s
+worth pointing out that where the <code>cert-manager</code> Kustomization had a
+<code>repository.yaml</code> file, the <code>linkerd</code> Kustomization has <code>repositories.yaml</code>,
+with the name pluralized. The name doesn&rsquo;t matter at all to Flux, since it has
+to be listed explicitly in <code>kustomization.yaml</code>: this means you&rsquo;re free to
+choose names that help later readers follow what&rsquo;s going on.</p><p>There&rsquo;s a lot more in the <code>infrastructure.yaml</code> file, but we&rsquo;re going to leave
+the rest for the <code>gitops-linkerd</code> demo and your own reading. Let&rsquo;s continue on
+to the application.</p><h3 id=gitops-linkerd-application><code>gitops-linkerd</code> Application</h3><p>The <code>gitops-linkerd</code> repo is set up to install the <a href=https://github.com/BuoyantIO/faces-demo/ target=_blank rel=noopener>Faces demo</a> as its
+application. This is defined in <code>clusters/my-cluster/apps.yaml</code>, which is set up
+basically exactly the same way as <code>infrastructure.yaml</code>:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>kustomize.toolkit.fluxcd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Kustomization</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>apps</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>dependsOn</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flagger</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>ingress-nginx</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>10m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>retryInterval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>timeout</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>5m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>prune</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>wait</span>:<span style=color:#6e7681> </span><span style=color:#79c0ff>true</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>sourceRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>GitRepository</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flux-system</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>path</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>./apps</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>Things worth noting here:</p><ul><li>We&rsquo;re checking for changes every ten minutes, not every hour.</li><li>We explicitly list only <code>flagger</code> and <code>ingress-nginx</code> as dependencies, because
+those two are the leaves of our infrastructure dependency graph. Flux will
+figure out all the rest from there.</li></ul><p>You&rsquo;ll also notice, when you look in <code>./apps</code>, that things in there look quite
+different. First, the only thing in <code>./apps</code> is another directory, <code>faces</code>. This
+is because Flux is well-suited to managing multiple applications at the same
+time: since it automatically recurses into directories, we can just have a
+separate directory per app.</p><p>As always, for the <code>faces</code> app, we start with its
+<code>./apps/faces/kustomization.yaml</code> file:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>kustomize.config.k8s.io/v1beta1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Kustomization</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>resources</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>namespace.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>faces-sync.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>faces-ingress.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>faces-canary.yaml</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#a5d6ff>faces-abtest.yaml</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>This part looks straightforward, except that the names imply that things are
+very different from our infrastructure. Again, we&rsquo;ll leave the really deep dive
+for the <code>gitops-linkerd</code> demo, but there are a few concepts worth looking at
+here.</p><h4 id=kustomizationyaml-defines-the-app-namespace><code>kustomization.yaml</code> Defines the App Namespace</h4><p>First note that the Kustomization has a toplevel <code>namespace</code> attribute, rather
+than having <code>metadata.name</code> and <code>metadata.namespace</code>. The toplevel <code>namespace</code>
+attribute sets the namespace for every resource referenced in this
+Kustomization, <em>whether or not the resource tries to define the namespace
+itself</em>.</p><p>The idea here is that it makes it easy to clone an application and place it in
+whatever namespace fits your needs, without having to edit each individual
+<code>metadata.namespace</code>.</p><h4 id=faces-syncyaml-uses-a-git-repository><code>faces-sync.yaml</code> Uses a Git Repository</h4><p>The Kustomization references <code>faces-sync.yaml</code>; if we look in that file, we see
+a Git repo as a source, rather than a Helm chart:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>source.toolkit.fluxcd.io/v1beta2</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>GitRepository</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>10m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>url</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>https://github.com/BuoyantIO/faces-demo</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>ref</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>branch</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>main</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>ignore</span>:<span style=color:#6e7681> </span>|<span style=color:#a5d6ff>
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>    /*
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>    !/k8s/01-base/*-profile.yaml
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>    !/k8s/01-base/faces.yaml
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>    !/k8s/01-base/faces-gui.yaml</span><span style=color:#6e7681>    
+</span></span></span></code></pre></div><ul><li><p>We use the <code>https</code> URL to the Git repo so that Flux does not need any special
+permissions: it&rsquo;s just reading a public repository from GitHub.</p></li><li><p><code>ref.branch: main</code> tells Flux to look at the <code>main</code> branch.</p></li><li><p>Finally, the <code>ignore</code> attribute is important and easy to overlook: there is a
+<em>lot</em> of stuff in the <code>faces-demo</code> repo, and Flux needs almost none of it! So
+we can explicitly tell Flux to ignore <em>everything</em> except the few files we
+need to pay attention to.</p></li><li><p><code>faces-sync.yaml</code> also defines some patches to be applied to the files it
+pulls from GitHub. These are described in the <code>gitops-linkerd</code> demo.</p></li></ul><h4 id=faces-canaryyaml-and-faces-abtestyaml-set-up-flagger><code>faces-canary.yaml</code> and <code>faces-abtest.yaml</code> Set Up Flagger</h4><p>We&rsquo;ll talk more about these in the Flagger section, below.</p><h3 id=bootstrapping-the-cluster>Bootstrapping the Cluster</h3><p>After all this background, we can talk about what happens when you actually run
+<code>flux bootstrap</code>! It&rsquo;s a beautiful example of an awful lot of complexity made
+into a simple thing for a user.</p><p>(Once again, we&rsquo;re deliberately not giving the full <code>flux bootstrap</code> command for
+the <code>gitops-linkerd</code> in this blog post. Check out the <code>README.md</code> in the
+<code>gitops-linkerd</code> repo for all the bootstrap details.)</p><ol><li><p>First, <code>flux bootstrap</code> will set up access to the Git repo you point it to.
+It&rsquo;ll verify its credentials, check out the correct branch, create deploy
+keys, etc.</p></li><li><p>Next, it&rsquo;ll look at all the YAML files in the starting directory you give it.
+It&rsquo;ll use these to do any necessary configuration of Flux itself and,
+critically, build the whole dependency graph.</p></li><li><p>After that, it will start walking the dependency graph, installing things as
+efficiently as it can. Flux is perfectly happy to work in parallel wherever
+it can, only blocking components where needed.</p></li></ol><p>A very very important Flux CLI command is <code>flux get kustomizations</code> &ndash; this will
+show you all the Kustomizations that Flux knows about and, critically, their
+status. You can also use the Weave GitOps UI for a graphical view here. This is
+so useful during bootstrap that <code>flux get kustomizations --watch</code> will give you
+a continuously updating view.</p><p>A final critical point: since nothing depends on our application, Flux will
+<em>not</em> wait for the application to be ready and running before declaring success!
+To make sure that the app is running after <code>flux bootstrap</code> completes, either
+add a dummy component that depends on the application, or (much simpler!) just
+use <code>kubectl rollout status</code> to wait for your application to be ready.</p><h3 id=the-biggest-flux-gotcha-of-all>The Biggest Flux Gotcha Of All</h3><p>Once in operation, Flux is fairly straightforward, with one big exception: it&rsquo;s
+not really possible to watch Git repositories in any standard way, so Flux polls
+for changes. This polling can be fairly slow, because often it&rsquo;s just not a big
+deal if it takes several minutes or an hour to catch a change and roll it out.</p><p>Of course, that changes if you&rsquo;re actively developing something! It can be quite
+disorienting to push a commit and then have nothing happen. While you can crank
+the poll interval down to make this better, a better plan might be to use the
+<code>flux reconcile</code> command to trigger an immediate pass over a given
+Kustomization, e.g.</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>flux reconcile kustomization apps --with-source
+</span></span></code></pre></div><p>An important note for <code>flux reconcile</code> is that it will <em>not</em> recursively
+reconcile other Kustomizations contained within the one you pass it on the
+command line. This matters for the Kustomizations in the <code>gitops-linkerd</code> repo:
+<code>apps</code> includes a Kustomization for <code>faces</code> that points to a separate Git repo.
+If we change something in that secondary Git repo and we want to trigger a new
+reconciliation, we need to explicitly tell Flux to look at the <code>faces</code>
+Kustomization (which, remember, is in the <code>faces</code> namespace):</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>flux reconcile kustomization faces -n faces --with-source
+</span></span></code></pre></div><hr><h2 id=putting-it-into-practice-flagger>Putting It Into Practice: Flagger</h2><p>Flux gives you a very powerful set of tools for managing your cluster by
+committing to a Git repo rather than directly modifying the cluster. Flagger
+builds on Flux by introducing progressive deployment: rather than updating a
+Deployment to a new version all at once, Flagger can move traffic gracefully to
+a new version and monitor how well the new version works, making it much safer
+to do live updates.</p><p>Flagger relies on external components to make this happen:</p><ul><li><p>First, some external thing needs to be able to shift traffic smoothly from the
+old version to the new version. This could be an ingress controller for things
+at the edge of the call graph, or an SMI TrafficSplit or Gateway API HTTPRoute
+for things deeper in the call graph.</p><p><code>gitops-linkerd</code> shows how to use NGINX and Linkerd&rsquo;s SMI extension for this
+purpose. Future versions of Linkerd will also support the HTTPRoute mechanism.</p></li><li><p>Second, Flagger needs to monitor external metrics to be sure that the new
+version is working, and it needs to know how the Deployments you want to work
+with are labeled. These are both set by supplying values to the Flagger Helm
+chart.</p></li></ul><p>In <code>gitops-linkerd</code>, we set up Flagger in <code>infrastructure/flagger/release.yaml</code>,
+supplying the following values to Helm:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>values</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>meshProvider</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>linkerd</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>metricsServer</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http://prometheus.linkerd-viz:9090</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>selectorLabels</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>app,name,app.kubernetes.io/name,service</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>In order:</p><ul><li><p><code>meshProvider</code> tells Flagger the service mesh in play.</p></li><li><p><code>metricsServer</code> points Flagger to the same Prometheus that Linkerd&rsquo;s Viz
+extension uses for its metrics. <strong>Flagger must use the same Prometheus as
+Linkerd Viz for this to work.</strong> If you point Linkerd Viz to a new Prometheus
+instance, you must change Flagger&rsquo;s configuration as well.</p></li><li><p><code>selectorLabels</code> tells Flagger about the labels Deployments will use to find
+their Pods. The Faces demo mostly uses <code>service</code>, which is not part of the
+<code>selectorLabels</code> list by default.</p></li></ul><h3 id=flagger-canaries>Flagger Canaries</h3><p>Where Flux commonly deals with Kustomization resources, Flagger commonly deals
+with Canary resources, named for the common &ldquo;canary&rdquo; deployment pattern where a
+new version gets a small amount of traffic shifted to it, then slowly more and
+more until it&rsquo;s taking all the load. Flagger can also manage an A/B deployment
+pattern, where the new version takes all traffic marked with a particular header
+or the like: you&rsquo;ll still use a Canary resource for this, though.</p><p>Let&rsquo;s look at one of the Canary definitions for <code>gitops-linkerd</code>. This is the
+first document in <code>apps/faces/faces-canary.yaml</code>:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flagger.app/v1beta1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Canary</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>provider</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>linkerd</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>targetRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>apps/v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Deployment</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>progressDeadlineSeconds</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>60</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>service</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>targetPort</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>analysis</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>10s</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>threshold</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>3</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>maxWeight</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>50</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>stepWeight</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>5</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>metrics</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>request-success-rate</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>thresholdRange</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>min</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>70</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>webhooks</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>load-test</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>type</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>rollout</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>url</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http://flagger-loadtester.flagger-system/</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>cmd</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>&#34;hey -z 2m -q 10 -c 2 http://face-canary.faces/&#34;</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>As always, the really deep dive will happen in the <code>gitops-linkerd</code> demo, but
+let&rsquo;s take a look at the highlights here:</p><ul><li><p>The <code>targetRef</code> specifies which resource we need to watch for changes. In this
+case, it&rsquo;s the Deployment named <code>face</code>. (Flagger also knows how to handle
+DaemonSets, but the target must be in the same namespace as the Canary.)</p></li><li><p><code>provider: linkerd</code> means that we want Flagger to interact with Linkerd to
+shift traffic (by managing an SMI TrafficSplit).</p><ul><li>The <code>service</code> attribute tells Flagger which traffic, exactly, needs to be
+shifted. This needs to match up with a port defined in the Deployment.</li></ul></li><li><p>In the <code>analysis</code> section, several attributes work together to define how
+quickly traffic is shifted.</p><ul><li><p>As shown, we&rsquo;ll start with 0% traffic, then every 10 seconds
+(<code>analysis.interval</code>) we&rsquo;ll shift another 5% of traffic
+(<code>analysis.stepWeight</code>). Once we hit 50% (<code>analysis.maxWeight</code>) we&rsquo;ll call
+it good, and go to 100%.</p></li><li><p>The overall effect is that if all goes well, it will take just shy of two
+minutes to shift all the traffic to the new version. The analysis section
+gives you a lot of control to tune this so that it fits your application&rsquo;s
+needs.</p></li></ul></li><li><p><code>analysis.metrics</code> describes how to determine that things are going OK. Here,
+we&rsquo;ll look at the <code>request-success-rate</code>, and require it to be over 70%.
+(<code>request-success-rate</code> is a builtin analysis metric for Flagger: it means
+look at the Prometheus that Flagger was configured to use, and check the
+success rate for the service being canaried.)</p></li><li><p><code>analysis.threshold</code> describes when the test has failed. In this case, if we
+see three instances of the success rate falling before 70%, we abort the
+rollout.</p></li><li><p><code>analysis.webhooks</code> is using Flagger&rsquo;s builtin load generator to provide load
+to the canary to make sure that our metrics are meaningful. For more on this,
+see <a href=https://docs.flagger.app/usage/webhooks#load-testing target=_blank rel=noopener>https://docs.flagger.app/usage/webhooks#load-testing</a>.</p></li></ul><h3 id=flagger-ab-tests>Flagger A/B Tests</h3><p>Where a canary rollout slowly shifts traffic over time as long as things
+succeed, and finishes once all the traffic is shifting, an A/B test shifts only
+traffic that matches a particular criterion. A/B tests can end after a certain
+amount of time, or they can run until a user explicitly decides it&rsquo;s over.</p><p>A common use for A/B testing is to show one subset of users a new look for a UI,
+for example, while collecting user feedback. When the UI designers think they
+have enough feedback, they can decide whether to roll out the new version to
+everyone, or to roll everyone back to the old UI.</p><p>In Flagger, A/B tests are also implemented with the Canary resource. Here&rsquo;s the
+Canary defined in <code>apps/faces/faces-canary.yaml</code> in <code>gitops-linkerd</code>:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>flagger.app/v1beta1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Canary</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces-gui</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>provider</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>nginx</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>targetRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>apps/v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Deployment</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces-gui</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>ingressRef</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>networking.k8s.io/v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Ingress</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces-gui</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>progressDeadlineSeconds</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>60</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>service</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>targetPort</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>analysis</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>10s</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>threshold</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>3</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>iterations</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>10</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#8b949e;font-style:italic># A/B test routing</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>match</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>headers</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>x-faces-user</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>            </span><span style=color:#7ee787>exact</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>&#34;testuser&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>metrics</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>request-success-rate</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>thresholdRange</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>min</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>70</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>interval</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>1m</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>webhooks</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>load-test</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>type</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>rollout</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>url</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http://flagger-loadtester.flagger-system/</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>cmd</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>            </span><span style=color:#a5d6ff>&#34;hey -z 2m -q 10 -c 2 -H &#39;x-faces-user: testuser&#39; -host
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>            faces-gui.faces.sslip.io
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>            http://ingress-nginx-controller.ingress-nginx&#34;</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>load-test-primary</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>type</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>rollout</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>url</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http://flagger-loadtester.flagger-system/</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>cmd</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>            </span><span style=color:#a5d6ff>&#34;hey -z 2m -q 10 -c 2 -H &#39;x-faces-user: normaluser&#39; -host
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>            faces-gui.faces.sslip.io
+</span></span></span><span style=display:flex><span><span style=color:#a5d6ff>            http://ingress-nginx-controller.ingress-nginx&#34;</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><p>Most of this should be familiar by now, but there are definitely some
+differences:</p><ul><li><p><code>provider</code> is <code>nginx</code> rather than <code>linkerd</code>. For this A/B test, Flagger will
+edit an Ingress resource that&rsquo;s being monitored by NGINX, rather than editing
+an SMI TrafficSplit that&rsquo;s being monitored by Linkerd.</p></li><li><p><code>ingressRef</code> specifies which Ingress resource Flagger should manage.</p></li><li><p>There&rsquo;s a new <code>analysis.match</code> section which describes which traffic to shift.
+In this case, we&rsquo;ll route traffic with the header <code>x-faces-user: testuser</code> to
+the B side of the test (the new version).</p></li><li><p>This A/B test is time-based: after 10 (<code>analysis.iterations</code>) periods of 10
+seconds (<code>analysis.interval</code>), the test will be over and the new version will
+be promoted.</p><ul><li>It&rsquo;s possible to do manual gating with webhooks. This is a bit more
+advanced: see <a href=https://docs.flagger.app/usage/webhooks#manual-gating target=_blank rel=noopener>https://docs.flagger.app/usage/webhooks#manual-gating</a> for
+more information.</li></ul></li><li><p>In <code>analysis.webhooks</code>, we supply load to both the A side and the B side.</p></li></ul><p>Worth a note: Flagger can&rsquo;t currently do an A/B test using the <code>linkerd</code>
+provider. As Linkerd adopts more of the Gateway API, though, this will change!</p><h3 id=flagger-under-the-hood>Flagger Under the Hood</h3><p>There is, of course, an enormous amount more that we could discuss about
+Flagger. As always, we&rsquo;ll avoid the temptation in most cases, but there are a
+few aspects that we should definitely cover to make it easier to understand
+what&rsquo;s going on.</p><p>First, the way Flagger handles services can be very confusing at first. As an
+example, consider a Canary for a Deployment called <code>face</code>, with a Service named
+<code>face</code>:</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Service</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>type</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>ClusterIP</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>selector</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>service</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>ports</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span>- <span style=color:#7ee787>port</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>80</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>targetPort</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#ff7b72>---</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>apiVersion</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>apps/v1</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>kind</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Deployment</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>namespace</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>faces</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681></span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>selector</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>matchLabels</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>service</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>  </span><span style=color:#7ee787>template</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>metadata</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>labels</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>service</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>    </span><span style=color:#7ee787>spec</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span><span style=color:#7ee787>containers</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>      </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>face</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>image</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>dwflynn/faces-service:0.8.0</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>imagePullPolicy</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>Always</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#7ee787>ports</span>:<span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span>- <span style=color:#7ee787>name</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>http</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>          </span><span style=color:#7ee787>containerPort</span>:<span style=color:#6e7681> </span><span style=color:#a5d6ff>8000</span><span style=color:#6e7681>
+</span></span></span><span style=display:flex><span><span style=color:#6e7681>        </span><span style=color:#a5d6ff>...</span><span style=color:#6e7681>
+</span></span></span></code></pre></div><ol><li><p>Flagger needs to understand the selector used by the Deployment to match up
+with its Pods. In our case, since we told Flagger that <code>service</code> was in its
+<code>selectorLabels</code>, Flagger will find the <code>service: face</code> label.</p></li><li><p>Flagger will create a new Deployment named <code>face-primary</code>, which will be
+labeled with <code>service: face-primary</code>.</p></li><li><p>Flagger will create a new Service named <code>face-primary</code>, which will use a
+selector of <code>service: face-primary</code>.</p></li><li><p>Flagger will edit the <code>face</code> Service to also use a selector of
+<code>service: face-primary</code>.</p></li><li><p>Flagger will create a new Service named <code>face-canary</code> using a selector of
+<code>service: face</code>.</p><p>At this point:</p><ul><li><p>Service <code>face</code> and Service <code>face-primary</code> both select the <code>face-primary</code>
+Deployment. This is the original production <code>face</code> workload.</p></li><li><p>Service <code>face-canary</code> will select the <code>face</code> Deployment. This will be the
+canary workload.</p></li></ul></li><li><p>Flagger will route 100% of <code>face</code> traffic to the <code>face-primary</code> Service, and
+0% to the <code>face</code> Service.</p><p>This means that all traffic for <code>face</code> will go to the production workload.</p></li></ol><p>When a Canary becomes active, Flagger will edit the <code>face</code> Deployment to have
+the canary workload, and gradually start routing traffic to the canary service
+using whatever traffic-shifting mechanism is active.</p><p>When the Canary completes, Flagger will edit the <code>face-primary</code> Deployment to
+have the promoted workload, then reset traffic to go 100% to <code>face-primary</code> and
+0% to <code>face</code>.</p><p>There are two critical things to bear in mind here:</p><ol><li><p>To monitor a Canary while it&rsquo;s in progress, you can use
+<code>kubectl get canaries</code> to look at the Canary objects, but you can also use
+Linkerd Viz to directly look at the traffic weighting. Using Linkerd Viz can
+be simpler, especially if you&rsquo;re using the Linkerd Viz dashboard.</p></li><li><p><strong>Both Deployments and both Services always exist.</strong> Don&rsquo;t be confused by
+this: look at the Canary resources or the traffic split!</p></li></ol><h3 id=the-biggest-flagger-gotcha-of-all>The Biggest Flagger Gotcha Of All</h3><p>Finally, there is one huge gotcha when working with Flagger. It doesn&rsquo;t have to
+be frequent, nor is it that strange when you think about it, but it is <strong>very</strong>
+important to understand:</p><p><strong>When a Canary rollout fails, the rollout will be reset but Flagger cannot
+change the Git commit that triggered the rollout.</strong></p><p>What this means is that if you start a Flagger rollout by, say, updating the
+<code>face</code> Deployment from version 1.0.0 of your <code>image</code> to version 1.1.0, and that
+fails, <strong>your Git repository will still show version 1.1.0, but your cluster
+will be running version 1.0.0</strong>. This is not a bug: you do not want Flagger to
+be able to edit your Git repository. It is, however, the biggest way in which
+the idea that &ldquo;Git is always true&rdquo; can break down.</p><p>The easiest way to deal with this is dirt simple: watch your rollouts until they
+finish, and if they fail, deal with it! Either fix the issue and roll forward,
+or push a commit to reflect the version that you&rsquo;re still using.</p><hr><h2 id=real-world-gitops-flux-flagger-and-linkerd>Real-World GitOps: Flux, Flagger, and Linkerd</h2><p>And there you have it: a whirlwind tour of Flux, Flagger, and Linkerd! You can
+find the source for the more detailed workshop at
+<a href=https://github.com/BuoyantIO/gitops-linkerd target=_blank rel=noopener>https://github.com/BuoyantIO/gitops-linkerd</a>: check out README.md and DEMO.md
+for all you need to know about how to explore the repo and how to run the demo
+(with many thanks to Russ Parmer of WeaveWorks for invaluable assistance putting
+this all together: any errors are mine, not his!).</p><p>If you found this interesting, check out the Service Mesh Academy workshop on
+<a href=https://buoyant.io/service-mesh-academy/real-world-gitops-with-flagger-and-linkerd target=_blank rel=noopener>Real-World GitOps with Flux, Flagger, and Linkerd</a>
+for hands-on exploration of everything I&rsquo;ve talked about here! And, as always,
+feedback is always welcome &ndash; you can find me as <code>@flynn</code> on the
+<a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a>.</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2023/06/21/linkerd-edge-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/06/21/linkerd-edge-roundup/>Linkerd Edge Release Roundup: 21 June 2023</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Jun 21, 2023 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2023/06/13/dynamic-request-routing-circuit-breaking/thumbnail.jpg alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/06/13/dynamic-request-routing-circuit-breaking/>Workshop recap: Dynamic Request Routing and Circuit Breaking</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Jun 13, 2023 • 8 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

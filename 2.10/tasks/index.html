@@ -1,0 +1,304 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Tasks | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="As a complement to the Linkerd feature docs and
+the Linkerd reference docs, we&rsquo;ve provided guides
+and examples of common tasks that you may need to perform when using Linkerd.
+
+
+  Common Linkerd tasks
+  
+    
+  
+
+  
+
+
+  
+      
+        
+          Adding Your Services to Linkerd
+        
+        In order for your services to take advantage of Linkerd, they also need to be *meshed* by injecting Linkerd's data plane proxy into their pods.
+      
+      
+        
+          Automated Canary Releases
+        
+        Reduce deployment risk by combining Linkerd and Flagger to automate canary releases based on service metrics.
+      
+      
+        
+          Automatically Rotating Control Plane TLS Credentials
+        
+        Use cert-manager to automatically rotate control plane TLS credentials.
+      
+      
+        
+          Automatically Rotating Webhook TLS Credentials
+        
+        Use cert-manager to automatically rotate webhook TLS credentials.
+      
+      
+        
+          Bringing your own Prometheus
+        
+        Use an existing Prometheus instance with Linkerd.
+      
+      
+        
+          Configuring Proxy Concurrency
+        
+        Limit the Linkerd proxy's CPU usage.
+      
+      
+        
+          Configuring Retries
+        
+        Configure Linkerd to automatically retry failing requests.
+      
+      
+        
+          Configuring Timeouts
+        
+        Configure Linkerd to automatically fail requests that take too long.
+      
+      
+        
+          Control Plane Debug Endpoints
+        
+        Linkerd's control plane components provide debug endpoints.
+      
+      
+        
+          Customizing Linkerd's Configuration with Kustomize
+        
+        Use Kustomize to modify Linkerd's configuration in a programmatic way.
+      
+      
+        
+          Debugging 502s
+        
+        Determine why Linkerd is returning 502 responses.
+      
+      
+        
+          Debugging gRPC applications with request tracing
+        
+        Follow a long-form example of debugging a failing gRPC application using live request tracing.
+      
+      
+        
+          Debugging HTTP applications with per-route metrics
+        
+        Follow a long-form example of debugging a failing HTTP application using per-route metrics.
+      
+      
+        
+          Distributed tracing with Linkerd
+        
+        Use Linkerd to help instrument your application with distributed tracing.
+      
+      
+        
+          Exporting Metrics
+        
+        Integrate Linkerd's Prometheus with your existing metrics infrastructure.
+      
+      
+        
+          Exposing the Dashboard
+        
+        Make it easy for others to access Linkerd and Grafana dashboards without the CLI.
+      
+      
+        
+          Generating your own mTLS root certificates
+        
+        Generate your own mTLS root certificate instead of letting Linkerd do it for you.
+      
+      
+        
+          Getting Per-Route Metrics
+        
+        Configure per-route metrics for your application.
+      
+      
+        
+          Getting started with Linkerd SMI extension
+        
+        Use Linkerd SMI extension to work with Service Mesh Interface(SMI) resources.
+      
+      
+        
+          Graceful Pod Shutdown
+        
+        Gracefully handle pod shutdown signal.
+      
+      
+        
+          Ingress traffic
+        
+        Linkerd works alongside your ingress controller of choice.
+      
+      
+        
+          Injecting Faults
+        
+        Practice chaos engineering by injecting faults into services with Linkerd.
+      
+      
+        
+          Installing Linkerd
+        
+        Install Linkerd to your own Kubernetes cluster.
+      
+      
+        
+          Installing Linkerd with Helm
+        
+        Install Linkerd onto your own Kubernetes cluster using Helm.
+      
+      
+        
+          Installing Multi-cluster Components
+        
+        Allow Linkerd to manage cross-cluster communication.
+      
+      
+        
+          Linkerd and Pod Security Policies (PSP)
+        
+        Using Linkerd with a pod security policies enabled.
+      
+      
+        
+          Manually Rotating Control Plane TLS Credentials
+        
+        Update Linkerd's TLS trust anchor and issuer certificate.
+      
+      
+        
+          Modifying the Proxy Log Level
+        
+        Linkerd proxy log levels can be modified dynamically to assist with debugging.
+      
+      
+        
+          Multi-cluster communication
+        
+        Allow Linkerd to manage cross-cluster communication.
+      
+      
+        
+          Replacing expired certificates
+        
+        Follow this workflow if any of your TLS certs have expired.
+      
+      
+        
+          Rotating webhooks certificates
+        
+        Follow these steps to rotate your Linkerd webhooks certificates.
+      
+      
+        
+          Securing Your Cluster
+        
+        Best practices for securing your Linkerd installation.
+      
+      
+        
+          Setting Up Service Profiles
+        
+        Create a service profile that provides more details for Linkerd to build on.
+      
+      
+        
+          Troubleshooting
+        
+        Troubleshoot issues with your Linkerd installation.
+      
+      
+        
+          Uninstalling Linkerd
+        
+        Linkerd can be easily removed from a Kubernetes cluster.
+      
+      
+        
+          Uninstalling Multicluster
+        
+        Unlink and uninstall Linkerd multicluster.
+      
+      
+        
+          Upgrading Linkerd
+        
+        Upgrade Linkerd to the latest version.
+      
+      
+        
+          Upgrading Multicluster in Linkerd 2.9
+        
+        Upgrading Multicluster to Linkerd 2.9.
+      
+      
+        
+          Upgrading to Linkerd 2.10: ports and protocols
+        
+        Upgrading to Linkerd 2.10 and handling skip-ports, server-speaks-first protocols, and more.
+      
+      
+        
+          Using a Custom Cluster Domain
+        
+        Use Linkerd with a custom cluster domain.
+      
+      
+        
+          Using A Private Docker Repository
+        
+        Using Linkerd with a Private Docker Repository.
+      
+      
+        
+          Using extensions
+        
+        Add functionality to Linkerd with optional extensions.
+      
+      
+        
+          Using GitOps with Linkerd with Argo CD
+        
+        Use Argo CD to manage Linkerd installation and upgrade lifecycle.
+      
+      
+        
+          Using the Debug Sidecar
+        
+        Inject the debug container to capture network packets.
+      
+      
+        
+          Validating your mTLS traffic
+        
+        You can validate whether or not your traffic is being mTLS'd by Linkerd.
+      
+  "><meta property="og:url" content="https://travisbeckham.github.io/2.10/tasks/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Tasks"><meta property="og:description" content="As a complement to the Linkerd feature docs and the Linkerd reference docs, we’ve provided guides and examples of common tasks that you may need to perform when using Linkerd.
+Common Linkerd tasks Adding Your Services to Linkerd In order for your services to take advantage of Linkerd, they also need to be *meshed* by injecting Linkerd's data plane proxy into their pods. Automated Canary Releases Reduce deployment risk by combining Linkerd and Flagger to automate canary releases based on service metrics. Automatically Rotating Control Plane TLS Credentials Use cert-manager to automatically rotate control plane TLS credentials. Automatically Rotating Webhook TLS Credentials Use cert-manager to automatically rotate webhook TLS credentials. Bringing your own Prometheus Use an existing Prometheus instance with Linkerd. Configuring Proxy Concurrency Limit the Linkerd proxy's CPU usage. Configuring Retries Configure Linkerd to automatically retry failing requests. Configuring Timeouts Configure Linkerd to automatically fail requests that take too long. Control Plane Debug Endpoints Linkerd's control plane components provide debug endpoints. Customizing Linkerd's Configuration with Kustomize Use Kustomize to modify Linkerd's configuration in a programmatic way. Debugging 502s Determine why Linkerd is returning 502 responses. Debugging gRPC applications with request tracing Follow a long-form example of debugging a failing gRPC application using live request tracing. Debugging HTTP applications with per-route metrics Follow a long-form example of debugging a failing HTTP application using per-route metrics. Distributed tracing with Linkerd Use Linkerd to help instrument your application with distributed tracing. Exporting Metrics Integrate Linkerd's Prometheus with your existing metrics infrastructure. Exposing the Dashboard Make it easy for others to access Linkerd and Grafana dashboards without the CLI. Generating your own mTLS root certificates Generate your own mTLS root certificate instead of letting Linkerd do it for you. Getting Per-Route Metrics Configure per-route metrics for your application. Getting started with Linkerd SMI extension Use Linkerd SMI extension to work with Service Mesh Interface(SMI) resources. Graceful Pod Shutdown Gracefully handle pod shutdown signal. Ingress traffic Linkerd works alongside your ingress controller of choice. Injecting Faults Practice chaos engineering by injecting faults into services with Linkerd. Installing Linkerd Install Linkerd to your own Kubernetes cluster. Installing Linkerd with Helm Install Linkerd onto your own Kubernetes cluster using Helm. Installing Multi-cluster Components Allow Linkerd to manage cross-cluster communication. Linkerd and Pod Security Policies (PSP) Using Linkerd with a pod security policies enabled. Manually Rotating Control Plane TLS Credentials Update Linkerd's TLS trust anchor and issuer certificate. Modifying the Proxy Log Level Linkerd proxy log levels can be modified dynamically to assist with debugging. Multi-cluster communication Allow Linkerd to manage cross-cluster communication. Replacing expired certificates Follow this workflow if any of your TLS certs have expired. Rotating webhooks certificates Follow these steps to rotate your Linkerd webhooks certificates. Securing Your Cluster Best practices for securing your Linkerd installation. Setting Up Service Profiles Create a service profile that provides more details for Linkerd to build on. Troubleshooting Troubleshoot issues with your Linkerd installation. Uninstalling Linkerd Linkerd can be easily removed from a Kubernetes cluster. Uninstalling Multicluster Unlink and uninstall Linkerd multicluster. Upgrading Linkerd Upgrade Linkerd to the latest version. Upgrading Multicluster in Linkerd 2.9 Upgrading Multicluster to Linkerd 2.9. Upgrading to Linkerd 2.10: ports and protocols Upgrading to Linkerd 2.10 and handling skip-ports, server-speaks-first protocols, and more. Using a Custom Cluster Domain Use Linkerd with a custom cluster domain. Using A Private Docker Repository Using Linkerd with a Private Docker Repository. Using extensions Add functionality to Linkerd with optional extensions. Using GitOps with Linkerd with Argo CD Use Argo CD to manage Linkerd installation and upgrade lifecycle. Using the Debug Sidecar Inject the debug container to capture network packets. Validating your mTLS traffic You can validate whether or not your traffic is being mTLS'd by Linkerd. "><meta property="og:locale" content="en_us"><meta property="og:type" content="website"><meta property="og:image" content="https://travisbeckham.github.io/logos/linkerd.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/logos/linkerd.png"><meta name=twitter:title content="Tasks"><meta name=twitter:description content="As a complement to the Linkerd feature docs and the Linkerd reference docs, we’ve provided guides and examples of common tasks that you may need to perform when using Linkerd.
+Common Linkerd tasks Adding Your Services to Linkerd In order for your services to take advantage of Linkerd, they also need to be *meshed* by injecting Linkerd's data plane proxy into their pods. Automated Canary Releases Reduce deployment risk by combining Linkerd and Flagger to automate canary releases based on service metrics. Automatically Rotating Control Plane TLS Credentials Use cert-manager to automatically rotate control plane TLS credentials. Automatically Rotating Webhook TLS Credentials Use cert-manager to automatically rotate webhook TLS credentials. Bringing your own Prometheus Use an existing Prometheus instance with Linkerd. Configuring Proxy Concurrency Limit the Linkerd proxy's CPU usage. Configuring Retries Configure Linkerd to automatically retry failing requests. Configuring Timeouts Configure Linkerd to automatically fail requests that take too long. Control Plane Debug Endpoints Linkerd's control plane components provide debug endpoints. Customizing Linkerd's Configuration with Kustomize Use Kustomize to modify Linkerd's configuration in a programmatic way. Debugging 502s Determine why Linkerd is returning 502 responses. Debugging gRPC applications with request tracing Follow a long-form example of debugging a failing gRPC application using live request tracing. Debugging HTTP applications with per-route metrics Follow a long-form example of debugging a failing HTTP application using per-route metrics. Distributed tracing with Linkerd Use Linkerd to help instrument your application with distributed tracing. Exporting Metrics Integrate Linkerd's Prometheus with your existing metrics infrastructure. Exposing the Dashboard Make it easy for others to access Linkerd and Grafana dashboards without the CLI. Generating your own mTLS root certificates Generate your own mTLS root certificate instead of letting Linkerd do it for you. Getting Per-Route Metrics Configure per-route metrics for your application. Getting started with Linkerd SMI extension Use Linkerd SMI extension to work with Service Mesh Interface(SMI) resources. Graceful Pod Shutdown Gracefully handle pod shutdown signal. Ingress traffic Linkerd works alongside your ingress controller of choice. Injecting Faults Practice chaos engineering by injecting faults into services with Linkerd. Installing Linkerd Install Linkerd to your own Kubernetes cluster. Installing Linkerd with Helm Install Linkerd onto your own Kubernetes cluster using Helm. Installing Multi-cluster Components Allow Linkerd to manage cross-cluster communication. Linkerd and Pod Security Policies (PSP) Using Linkerd with a pod security policies enabled. Manually Rotating Control Plane TLS Credentials Update Linkerd's TLS trust anchor and issuer certificate. Modifying the Proxy Log Level Linkerd proxy log levels can be modified dynamically to assist with debugging. Multi-cluster communication Allow Linkerd to manage cross-cluster communication. Replacing expired certificates Follow this workflow if any of your TLS certs have expired. Rotating webhooks certificates Follow these steps to rotate your Linkerd webhooks certificates. Securing Your Cluster Best practices for securing your Linkerd installation. Setting Up Service Profiles Create a service profile that provides more details for Linkerd to build on. Troubleshooting Troubleshoot issues with your Linkerd installation. Uninstalling Linkerd Linkerd can be easily removed from a Kubernetes cluster. Uninstalling Multicluster Unlink and uninstall Linkerd multicluster. Upgrading Linkerd Upgrade Linkerd to the latest version. Upgrading Multicluster in Linkerd 2.9 Upgrading Multicluster to Linkerd 2.9. Upgrading to Linkerd 2.10: ports and protocols Upgrading to Linkerd 2.10 and handling skip-ports, server-speaks-first protocols, and more. Using a Custom Cluster Domain Use Linkerd with a custom cluster domain. Using A Private Docker Repository Using Linkerd with a Private Docker Repository. Using extensions Add functionality to Linkerd with optional extensions. Using GitOps with Linkerd with Argo CD Use Argo CD to manage Linkerd installation and upgrade lifecycle. Using the Debug Sidecar Inject the debug container to capture network packets. Validating your mTLS traffic You can validate whether or not your traffic is being mTLS'd by Linkerd. "><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2.16/tasks/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li class=main-nav__menu--selected><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="alert alert--warning alert--condensed alert--center docs__deprecated-alert"><div class=alert__content>You are viewing docs for an older version of Linkerd.
+You may want the <a href=/2.16/tasks/>latest documentation</a> for this page instead.</div></div><div class=docs><div class=docs__container><div class=docs__sidebar><div class=docs__nav><div class=docs__versions><select onchange="window.location.href=this.value"><option value=/2-edge/>Linkerd edge</option><option value=/2.16/>Linkerd 2.16</option><option value=/2.15/>Linkerd 2.15</option><option value=/2.14/>Linkerd 2.14</option><option value=/2.13/>Linkerd 2.13</option><option value=/2.12/>Linkerd 2.12</option><option value=/2.11/>Linkerd 2.11</option><option value=/2.10/ selected>Linkerd 2.10</option><option value=/2.9/>Linkerd 2.9</option></select></div><nav><ul><li><a href=/2.10/overview/>Overview</a></li><li><a href=/2.10/getting-started/>Getting Started</a></li><li><a href=/2.10/features/>Features
+</a><input class=toggle__input type=checkbox id=toggle-d39228324dd9fb5f997235d1002491eb>
+<label class=toggle__label for=toggle-d39228324dd9fb5f997235d1002491eb><svg class="icon icon--secondary" viewBox="0 0 24 24"><path d="M8.59 16.58 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg></label><ul class=toggle__target><li><a href=/2.10/features/http-grpc/>HTTP, HTTP/2, and gRPC Proxying</a></li><li><a href=/2.10/features/protocol-detection/>TCP Proxying and Protocol Detection</a></li><li><a href=/2.10/features/retries-and-timeouts/>Retries and Timeouts</a></li><li><a href=/2.10/features/automatic-mtls/>Automatic mTLS</a></li><li><a href=/2.10/features/ingress/>Ingress</a></li><li><a href=/2.10/features/telemetry/>Telemetry and Monitoring</a></li><li><a href=/2.10/features/load-balancing/>Load Balancing</a></li><li><a href=/2.10/features/proxy-injection/>Automatic Proxy Injection</a></li><li><a href=/2.10/features/cni/>CNI Plugin</a></li><li><a href=/2.10/features/distributed-tracing/>Distributed Tracing</a></li><li><a href=/2.10/features/fault-injection/>Fault Injection</a></li><li><a href=/2.10/features/ha/>High Availability</a></li><li><a href=/2.10/features/multicluster/>Multi-cluster communication</a></li><li><a href=/2.10/features/dashboard/>On-cluster metrics stack</a></li><li><a href=/2.10/features/service-profiles/>Service Profiles</a></li><li><a href=/2.10/features/traffic-split/>Traffic Split (canaries, blue/green deploys)</a></li></ul></li><li class=docs__nav--selected><a href=/2.10/tasks/>Tasks
+</a><input class=toggle__input type=checkbox id=toggle-485e75bd7ccdcb944fa3b6668d4628ad checked>
+<label class=toggle__label for=toggle-485e75bd7ccdcb944fa3b6668d4628ad><svg class="icon icon--secondary" viewBox="0 0 24 24"><path d="M8.59 16.58 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg></label><ul class=toggle__target><li><a href=/2.10/tasks/adding-your-service/>Adding Your Services to Linkerd</a></li><li><a href=/2.10/tasks/canary-release/>Automated Canary Releases</a></li><li><a href=/2.10/tasks/automatically-rotating-control-plane-tls-credentials/>Automatically Rotating Control Plane TLS Credentials</a></li><li><a href=/2.10/tasks/automatically-rotating-webhook-tls-credentials/>Automatically Rotating Webhook TLS Credentials</a></li><li><a href=/2.10/tasks/external-prometheus/>Bringing your own Prometheus</a></li><li><a href=/2.10/tasks/configuring-proxy-concurrency/>Configuring Proxy Concurrency</a></li><li><a href=/2.10/tasks/configuring-retries/>Configuring Retries</a></li><li><a href=/2.10/tasks/configuring-timeouts/>Configuring Timeouts</a></li><li><a href=/2.10/tasks/using-debug-endpoints/>Control Plane Debug Endpoints</a></li><li><a href=/2.10/tasks/customize-install/>Customizing Linkerd's Configuration with Kustomize</a></li><li><a href=/2.10/tasks/debugging-502s/>Debugging 502s</a></li><li><a href=/2.10/tasks/debugging-your-service/>Debugging gRPC applications with request tracing</a></li><li><a href=/2.10/tasks/books/>Debugging HTTP applications with per-route metrics</a></li><li><a href=/2.10/tasks/distributed-tracing/>Distributed tracing with Linkerd</a></li><li><a href=/2.10/tasks/exporting-metrics/>Exporting Metrics</a></li><li><a href=/2.10/tasks/exposing-dashboard/>Exposing the Dashboard</a></li><li><a href=/2.10/tasks/generate-certificates/>Generating your own mTLS root certificates</a></li><li><a href=/2.10/tasks/getting-per-route-metrics/>Getting Per-Route Metrics</a></li><li><a href=/2.10/tasks/linkerd-smi/>Getting started with Linkerd SMI extension</a></li><li><a href=/2.10/tasks/graceful-shutdown/>Graceful Pod Shutdown</a></li><li><a href=/2.10/tasks/using-ingress/>Ingress traffic</a></li><li><a href=/2.10/tasks/fault-injection/>Injecting Faults</a></li><li><a href=/2.10/tasks/install/>Installing Linkerd</a></li><li><a href=/2.10/tasks/install-helm/>Installing Linkerd with Helm</a></li><li><a href=/2.10/tasks/installing-multicluster/>Installing Multi-cluster Components</a></li><li><a href=/2.10/tasks/using-psp/>Linkerd and Pod Security Policies (PSP)</a></li><li><a href=/2.10/tasks/manually-rotating-control-plane-tls-credentials/>Manually Rotating Control Plane TLS Credentials</a></li><li><a href=/2.10/tasks/modifying-proxy-log-level/>Modifying the Proxy Log Level</a></li><li><a href=/2.10/tasks/multicluster/>Multi-cluster communication</a></li><li><a href=/2.10/tasks/replacing_expired_certificates/>Replacing expired certificates</a></li><li><a href=/2.10/tasks/rotating_webhooks_certificates/>Rotating webhooks certificates</a></li><li><a href=/2.10/tasks/securing-your-cluster/>Securing Your Cluster</a></li><li><a href=/2.10/tasks/setting-up-service-profiles/>Setting Up Service Profiles</a></li><li><a href=/2.10/tasks/troubleshooting/>Troubleshooting</a></li><li><a href=/2.10/tasks/uninstall/>Uninstalling Linkerd</a></li><li><a href=/2.10/tasks/uninstall-multicluster/>Uninstalling Multicluster</a></li><li><a href=/2.10/tasks/upgrade/>Upgrading Linkerd</a></li><li><a href=/2.10/tasks/upgrade-multicluster/>Upgrading Multicluster in Linkerd 2.9</a></li><li><a href=/2.10/tasks/upgrading-2.10-ports-and-protocols/>Upgrading to Linkerd 2.10: ports and protocols</a></li><li><a href=/2.10/tasks/using-custom-domain/>Using a Custom Cluster Domain</a></li><li><a href=/2.10/tasks/using-a-private-docker-repository/>Using A Private Docker Repository</a></li><li><a href=/2.10/tasks/extensions/>Using extensions</a></li><li><a href=/2.10/tasks/gitops/>Using GitOps with Linkerd with Argo CD</a></li><li><a href=/2.10/tasks/using-the-debug-container/>Using the Debug Sidecar</a></li><li><a href=/2.10/tasks/validating-your-traffic/>Validating your mTLS traffic</a></li></ul></li><li><a href=/2.10/reference/>Reference
+</a><input class=toggle__input type=checkbox id=toggle-843224a858ef1864ec3ba5006e3903e2>
+<label class=toggle__label for=toggle-843224a858ef1864ec3ba5006e3903e2><svg class="icon icon--secondary" viewBox="0 0 24 24"><path d="M8.59 16.58 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg></label><ul class=toggle__target><li><a href=/2.10/reference/architecture/>Architecture</a></li><li><a href=/2.10/reference/cli/>CLI
+</a><input class=toggle__input type=checkbox id=toggle-c5de1d33909841f045835c01e9b54f6f>
+<label class=toggle__label for=toggle-c5de1d33909841f045835c01e9b54f6f><svg class="icon icon--secondary" viewBox="0 0 24 24"><path d="M8.59 16.58 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg></label><ul class=toggle__target><li><a href=/2.10/reference/cli/check/>check</a></li><li><a href=/2.10/reference/cli/completion/>completion</a></li><li><a href=/2.10/reference/cli/diagnostics/>diagnostics</a></li><li><a href=/2.10/reference/cli/identity/>identity</a></li><li><a href=/2.10/reference/cli/inject/>inject</a></li><li><a href=/2.10/reference/cli/install/>install</a></li><li><a href=/2.10/reference/cli/install-cni/>install-cni</a></li><li><a href=/2.10/reference/cli/jaeger/>jaeger</a></li><li><a href=/2.10/reference/cli/multicluster/>multicluster</a></li><li><a href=/2.10/reference/cli/profile/>profile</a></li><li><a href=/2.10/reference/cli/repair/>repair</a></li><li><a href=/2.10/reference/cli/uninject/>uninject</a></li><li><a href=/2.10/reference/cli/uninstall/>uninstall</a></li><li><a href=/2.10/reference/cli/upgrade/>upgrade</a></li><li><a href=/2.10/reference/cli/version/>version</a></li><li><a href=/2.10/reference/cli/viz/>viz</a></li></ul></li><li><a href=/2.10/reference/cluster-configuration/>Cluster Configuration</a></li><li><a href=/2.10/reference/extension-list/>Extensions List</a></li><li><a href=/2.10/reference/helm-chart-version-matrix/>Helm Chart Version Matrix</a></li><li><a href=/2.10/reference/proxy-configuration/>Proxy Configuration</a></li><li><a href=/2.10/reference/proxy-log-level/>Proxy Log Level</a></li><li><a href=/2.10/reference/proxy-metrics/>Proxy Metrics</a></li><li><a href=/2.10/reference/service-profiles/>Service Profiles</a></li></ul></li></ul><ul><li><a href=/what-is-a-service-mesh/>What is a service mesh?</a></li><li><a href=/faq/>Frequently Asked Questions</a></li><li><a href=/releases/>Releases and Versions</a></li><li><a href=/design-principles/>Design Principles</a></li><li><a href=/going-to-production/>Going to Production</a></li><li><a href=/service-mesh-glossary/>Service Mesh Glossary</a></li></ul></nav><div class=docs__community><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener><img src=/logos/github.svg alt=GitHub class=img></a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener><img src=/logos/slack.svg alt=Slack class=img></a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener><img src=/logos/forum.png alt="Linkerd Forum" class=img></a></li></ul></div></div></div><div class=docs__main><div class=docs__body><div class=docs__header><h1>Tasks</h1></div><div class="docs__content prose"><p>As a complement to the <a href=/2.10/features/>Linkerd feature docs</a> and
+the <a href=/2.10/reference/>Linkerd reference docs</a>, we&rsquo;ve provided guides
+and examples of common tasks that you may need to perform when using Linkerd.</p><h2 id=common-linkerd-tasks class=anchor>Common Linkerd tasks
+<a href=#common-linkerd-tasks class=anchor__link><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7A5 5 0 002 12a5 5 0 005 5h4V15.1H7c-1.71.0-3.1-1.39-3.1-3.1M8 13h8V11H8v2m9-6H13V8.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1H13V17h4a5 5 0 005-5A5 5 0 0017 7z"/></svg></a></h2><ul><li><a href=/2.10/tasks/adding-your-service/>Adding Your Services to Linkerd</a><br>In order for your services to take advantage of Linkerd, they also need to be *meshed* by injecting Linkerd's data plane proxy into their pods.</li><li><a href=/2.10/tasks/canary-release/>Automated Canary Releases</a><br>Reduce deployment risk by combining Linkerd and Flagger to automate canary releases based on service metrics.</li><li><a href=/2.10/tasks/automatically-rotating-control-plane-tls-credentials/>Automatically Rotating Control Plane TLS Credentials</a><br>Use cert-manager to automatically rotate control plane TLS credentials.</li><li><a href=/2.10/tasks/automatically-rotating-webhook-tls-credentials/>Automatically Rotating Webhook TLS Credentials</a><br>Use cert-manager to automatically rotate webhook TLS credentials.</li><li><a href=/2.10/tasks/external-prometheus/>Bringing your own Prometheus</a><br>Use an existing Prometheus instance with Linkerd.</li><li><a href=/2.10/tasks/configuring-proxy-concurrency/>Configuring Proxy Concurrency</a><br>Limit the Linkerd proxy's CPU usage.</li><li><a href=/2.10/tasks/configuring-retries/>Configuring Retries</a><br>Configure Linkerd to automatically retry failing requests.</li><li><a href=/2.10/tasks/configuring-timeouts/>Configuring Timeouts</a><br>Configure Linkerd to automatically fail requests that take too long.</li><li><a href=/2.10/tasks/using-debug-endpoints/>Control Plane Debug Endpoints</a><br>Linkerd's control plane components provide debug endpoints.</li><li><a href=/2.10/tasks/customize-install/>Customizing Linkerd's Configuration with Kustomize</a><br>Use Kustomize to modify Linkerd's configuration in a programmatic way.</li><li><a href=/2.10/tasks/debugging-502s/>Debugging 502s</a><br>Determine why Linkerd is returning 502 responses.</li><li><a href=/2.10/tasks/debugging-your-service/>Debugging gRPC applications with request tracing</a><br>Follow a long-form example of debugging a failing gRPC application using live request tracing.</li><li><a href=/2.10/tasks/books/>Debugging HTTP applications with per-route metrics</a><br>Follow a long-form example of debugging a failing HTTP application using per-route metrics.</li><li><a href=/2.10/tasks/distributed-tracing/>Distributed tracing with Linkerd</a><br>Use Linkerd to help instrument your application with distributed tracing.</li><li><a href=/2.10/tasks/exporting-metrics/>Exporting Metrics</a><br>Integrate Linkerd's Prometheus with your existing metrics infrastructure.</li><li><a href=/2.10/tasks/exposing-dashboard/>Exposing the Dashboard</a><br>Make it easy for others to access Linkerd and Grafana dashboards without the CLI.</li><li><a href=/2.10/tasks/generate-certificates/>Generating your own mTLS root certificates</a><br>Generate your own mTLS root certificate instead of letting Linkerd do it for you.</li><li><a href=/2.10/tasks/getting-per-route-metrics/>Getting Per-Route Metrics</a><br>Configure per-route metrics for your application.</li><li><a href=/2.10/tasks/linkerd-smi/>Getting started with Linkerd SMI extension</a><br>Use Linkerd SMI extension to work with Service Mesh Interface(SMI) resources.</li><li><a href=/2.10/tasks/graceful-shutdown/>Graceful Pod Shutdown</a><br>Gracefully handle pod shutdown signal.</li><li><a href=/2.10/tasks/using-ingress/>Ingress traffic</a><br>Linkerd works alongside your ingress controller of choice.</li><li><a href=/2.10/tasks/fault-injection/>Injecting Faults</a><br>Practice chaos engineering by injecting faults into services with Linkerd.</li><li><a href=/2.10/tasks/install/>Installing Linkerd</a><br>Install Linkerd to your own Kubernetes cluster.</li><li><a href=/2.10/tasks/install-helm/>Installing Linkerd with Helm</a><br>Install Linkerd onto your own Kubernetes cluster using Helm.</li><li><a href=/2.10/tasks/installing-multicluster/>Installing Multi-cluster Components</a><br>Allow Linkerd to manage cross-cluster communication.</li><li><a href=/2.10/tasks/using-psp/>Linkerd and Pod Security Policies (PSP)</a><br>Using Linkerd with a pod security policies enabled.</li><li><a href=/2.10/tasks/manually-rotating-control-plane-tls-credentials/>Manually Rotating Control Plane TLS Credentials</a><br>Update Linkerd's TLS trust anchor and issuer certificate.</li><li><a href=/2.10/tasks/modifying-proxy-log-level/>Modifying the Proxy Log Level</a><br>Linkerd proxy log levels can be modified dynamically to assist with debugging.</li><li><a href=/2.10/tasks/multicluster/>Multi-cluster communication</a><br>Allow Linkerd to manage cross-cluster communication.</li><li><a href=/2.10/tasks/replacing_expired_certificates/>Replacing expired certificates</a><br>Follow this workflow if any of your TLS certs have expired.</li><li><a href=/2.10/tasks/rotating_webhooks_certificates/>Rotating webhooks certificates</a><br>Follow these steps to rotate your Linkerd webhooks certificates.</li><li><a href=/2.10/tasks/securing-your-cluster/>Securing Your Cluster</a><br>Best practices for securing your Linkerd installation.</li><li><a href=/2.10/tasks/setting-up-service-profiles/>Setting Up Service Profiles</a><br>Create a service profile that provides more details for Linkerd to build on.</li><li><a href=/2.10/tasks/troubleshooting/>Troubleshooting</a><br>Troubleshoot issues with your Linkerd installation.</li><li><a href=/2.10/tasks/uninstall/>Uninstalling Linkerd</a><br>Linkerd can be easily removed from a Kubernetes cluster.</li><li><a href=/2.10/tasks/uninstall-multicluster/>Uninstalling Multicluster</a><br>Unlink and uninstall Linkerd multicluster.</li><li><a href=/2.10/tasks/upgrade/>Upgrading Linkerd</a><br>Upgrade Linkerd to the latest version.</li><li><a href=/2.10/tasks/upgrade-multicluster/>Upgrading Multicluster in Linkerd 2.9</a><br>Upgrading Multicluster to Linkerd 2.9.</li><li><a href=/2.10/tasks/upgrading-2.10-ports-and-protocols/>Upgrading to Linkerd 2.10: ports and protocols</a><br>Upgrading to Linkerd 2.10 and handling skip-ports, server-speaks-first protocols, and more.</li><li><a href=/2.10/tasks/using-custom-domain/>Using a Custom Cluster Domain</a><br>Use Linkerd with a custom cluster domain.</li><li><a href=/2.10/tasks/using-a-private-docker-repository/>Using A Private Docker Repository</a><br>Using Linkerd with a Private Docker Repository.</li><li><a href=/2.10/tasks/extensions/>Using extensions</a><br>Add functionality to Linkerd with optional extensions.</li><li><a href=/2.10/tasks/gitops/>Using GitOps with Linkerd with Argo CD</a><br>Use Argo CD to manage Linkerd installation and upgrade lifecycle.</li><li><a href=/2.10/tasks/using-the-debug-container/>Using the Debug Sidecar</a><br>Inject the debug container to capture network packets.</li><li><a href=/2.10/tasks/validating-your-traffic/>Validating your mTLS traffic</a><br>You can validate whether or not your traffic is being mTLS'd by Linkerd.</li></ul></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

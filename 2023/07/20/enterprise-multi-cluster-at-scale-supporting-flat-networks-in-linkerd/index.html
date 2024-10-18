@@ -1,0 +1,100 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Enterprise multi-cluster at scale: supporting flat networks in Linkerd | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Linkerd has seen a steady rise in enterprise adoption, with companies like
+Adidas,
+Microsoft,
+Plaid,
+and DB Schenker deploying Linkerd at
+scale to bring security, compliance, and reliability to their mission-critical
+production infrastructure. Based on feedback from this enterprise audience, the
+upcoming Linkerd 2.14 release will introduce a new set of features designed to
+handle types of multi-cluster Kubernetes configurations commonly found in
+enterprise deployments.
+One of the most important new features in the next Linkerd release will be an
+improved ability to handle multi-cluster communication in environments with a
+shared flat network between clusters. In this blog post, I&rsquo;ll talk about what
+that means and why it&rsquo;s important."><meta property="og:url" content="https://travisbeckham.github.io/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Enterprise multi-cluster at scale: supporting flat networks in Linkerd"><meta property="og:description" content="Linkerd has seen a steady rise in enterprise adoption, with companies like Adidas, Microsoft, Plaid, and DB Schenker deploying Linkerd at scale to bring security, compliance, and reliability to their mission-critical production infrastructure. Based on feedback from this enterprise audience, the upcoming Linkerd 2.14 release will introduce a new set of features designed to handle types of multi-cluster Kubernetes configurations commonly found in enterprise deployments.
+One of the most important new features in the next Linkerd release will be an improved ability to handle multi-cluster communication in environments with a shared flat network between clusters. In this blog post, I’ll talk about what that means and why it’s important."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-07-20T00:00:00+00:00"><meta property="article:modified_time" content="2023-07-20T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/cover.jpg"><meta name=twitter:title content="Enterprise multi-cluster at scale: supporting flat networks in Linkerd"><meta name=twitter:description content="Linkerd has seen a steady rise in enterprise adoption, with companies like Adidas, Microsoft, Plaid, and DB Schenker deploying Linkerd at scale to bring security, compliance, and reliability to their mission-critical production infrastructure. Based on feedback from this enterprise audience, the upcoming Linkerd 2.14 release will introduce a new set of features designed to handle types of multi-cluster Kubernetes configurations commonly found in enterprise deployments.
+One of the most important new features in the next Linkerd release will be an improved ability to handle multi-cluster communication in environments with a shared flat network between clusters. In this blog post, I’ll talk about what that means and why it’s important."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2023-07-20T00:00:00Z","dateModified":"2023-07-20T00:00:00Z","headline":"Enterprise multi-cluster at scale: supporting flat networks in Linkerd","image":"https://travisbeckham.github.io/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Enterprise multi-cluster at scale: supporting flat networks in Linkerd</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Jul 20, 2023 • 5 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>Linkerd has seen a steady rise in enterprise adoption, with companies like
+<a href=https://buoyant.io/case-studies/adidas target=_blank rel=noopener>Adidas</a>,
+<a href=https://buoyant.io/case-studies/xbox target=_blank rel=noopener>Microsoft</a>,
+<a href=https://www.cncf.io/blog/2023/07/17/plaid-pain-free-deployments-at-global-scale/ target=_blank rel=noopener>Plaid</a>,
+and <a href=https://buoyant.io/case-studies/schenker target=_blank rel=noopener>DB Schenker</a> deploying Linkerd at
+scale to bring security, compliance, and reliability to their mission-critical
+production infrastructure. Based on feedback from this enterprise audience, the
+upcoming Linkerd 2.14 release will introduce a new set of features designed to
+handle types of multi-cluster Kubernetes configurations commonly found in
+enterprise deployments.</p><p>One of the most important new features in the next Linkerd release will be an
+improved ability to handle multi-cluster communication in environments with a
+shared flat network between clusters. In this blog post, I&rsquo;ll talk about what
+that means and why it&rsquo;s important.</p><h2 id=how-does-linkerd-handle-multi-cluster-today>How does Linkerd handle multi-cluster today?</h2><p>If you&rsquo;re using multiple Kubernetes clusters and want them to communicate with
+each other, Linkerd gives you the ability to send traffic across cluster
+boundaries that is:</p><ol><li><strong>Fully secured</strong>. This means that traffic between clusters is encrypted,
+authenticated, and authorized using mutual TLS, workload identities (not
+network identities!) and Linkerd&rsquo;s fine-grained,
+<a href=https://linkerd.io/2/features/server-policy/ target=_blank rel=noopener>zero-trust authorization policies</a>.</li><li><strong>Transparent to the application.</strong> This means that the application is
+totally decoupled from cluster topology, which allows the operator to take
+advantage of powerful networking capabilities such as
+<a href=https://linkerd.io/2/tasks/automatic-failover/ target=_blank rel=noopener>dynamically failover traffic to other clusters</a>.</li><li><strong>Observable and reliable</strong>. Linkerd&rsquo;s powerful L7 instrospection and
+reliability mechanisms, including golden metrics, retries, timeouts,
+distributed tracing, circuit breaking, and more, are all available to
+cross-cluster traffic just as they are to on-cluster traffic.</li></ol><p>Linkerd has supported multi-cluster Kubernetes deployments since the release of
+Linkerd 2.8 in 2020. That release introduced
+<a href=https://linkerd.io/2.13/features/multicluster/ target=_blank rel=noopener>a simple and elegant design</a>
+that involves the addition of a service mirror component to handle service
+discovery, and a multi-cluster gateway component to handle traffic from other
+clusters.</p><p>This gateway design allowed Linkerd&rsquo;s multi-cluster support to be entirely
+independent of underlying network topology. Whether your clusters are colocated
+in the same datacenter; split across different cloud providers; or deployed in a
+hybrid fashion between on-premises and cloud deployments, Linkerd worked the
+same way.</p><p>This design has worked well! However, as Kubernetes adoption has grown in
+enterprise environments, we&rsquo;ve seen a growing number of cases where clusters are
+deployed in a shared <em>flat network</em>. In this situation, we can make some
+significant optimizations by removing the gateway.</p><h2 id=multi-cluster-for-flat-networks>Multi-cluster for flat networks</h2><p>In a shared flat network situation, pods in different Kubernetes clusters can
+route traffic directly to each other. In other words, a pod in cluster 1 can
+establish a TCP connection to a pod in cluster 2, just using the underlying
+network.</p><p>If pods are routable, why use Linkerd? For exactly the same reasons you&rsquo;re using
+it within the cluster: to provide the security, reliability, and observability
+guarantees beyond what a baseline TCP connection provides.</p><p>In Linkerd 2.14, we&rsquo;ll introduce an additional mode of multi-cluster
+communication designed for shared flat networks: direct pod-to-pod communication
+between clusters without the gateway intermediary.</p><figure><img alt="An architectural diagram comparing hierarchical network mode with the new flat network mode" class="img img--max-fill img--center img--rounded" src=/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/flat-network.png></figure><p>In this approach, as you might imagine, Linkerd will route communication from a
+pod on the source cluster directly to the destination pod on another cluster
+without transiting the gateway. This provides several advantages, including:</p><ul><li><strong>Improved latency</strong> of cross-cluster calls by removing the additional hop
+between client and server.</li><li><strong>Improved security</strong> by preserving workload identity in mTLS calls across
+clusters, rather than overriding it with the gateway identity.</li><li><strong>Reduced cloud spend</strong> by reducing the amount of traffic that is routed
+through the multi-cluster gateway, which is often implemented as a cloud loud
+balancer.</li></ul><p>This approach still preserves two critical aspects of Linkerd&rsquo;s multi-cluster
+design:</p><ol><li><strong>Separation of failure domains.</strong> Each Kubernetes cluster runs its own
+Linkerd control plane, independently of other clusters, and the failure of a
+single cluster cannot take down the service mesh on other clusters.</li><li><strong>Standardized, uniform architecture.</strong>. Unlike other solutions that split L7
+logic between complex proxies operating at different levels and scopes,
+Linkerd&rsquo;s Rust-based &ldquo;micro-proxy&rdquo; sidecars are the sole mechanism for
+controlling traffic between pods and clusters, giving you a single
+operational surface area to monitor and manage, with clear isolation of
+failure and security domains.</li></ol><p>Finally, this approach improves Linkerd&rsquo;s ability to provide a uniform layer of
+authentication across your entire environment, and to enforce granular
+authorization policies, aka &ldquo;micro-segmentation&rdquo;. Because the gateway is no
+longer an intermediary, cross-cluster connections retain the workload identity
+of the source, and authorization policies can be crafted to take advantage of
+these identities directly.</p><p>(For Kubernetes experts, note that this implementation is inspired by, and
+loosely aligns with, the
+<a href=https://github.com/kubernetes/enhancements/tree/master/keps/sig-multicluster/1645-multi-cluster-services-api target=_blank rel=noopener>Multi-Cluster Services API proposal (KEP-1645</a>).
+While strict conformance with this KEP is not currently a goal, we look forward
+to seeing how that proposal evolves.)</p><h2 id=so-when-do-we-get-this-amazing-new-feature>So when do we get this amazing new feature?</h2><p>Linkerd 2.14 will be shipping next month. With the addition of pod-to-pod
+communication, we&rsquo;re confident that Linkerd will continue to be the simplest way
+to connect multiple Kubernetes clusters, now including for deployments that can
+make use of flat networks.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a <a href=/2021/07/28/announcing-cncf-graduation/>graduated project</a> of the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is
+<a href=https://linkerd.io/2019/10/03/linkerds-commitment-to-open-governance/ target=_blank rel=noopener>committed to open governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing lists</a>. Come and join the fun!</p><p>(<em>Photo by
+<a href="https://unsplash.com/@nasa?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>NASA</a>
+on
+<a href="https://unsplash.com/photos/_SFJhRPzJHs?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a></em>)</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

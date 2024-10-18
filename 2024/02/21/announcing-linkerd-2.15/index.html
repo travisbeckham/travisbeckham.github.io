@@ -1,0 +1,140 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Announcing Linkerd 2.15 with mesh expansion, native sidecars, and SPIFFE | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Today we&rsquo;re happy to announce the release of Linkerd 2.15, which adds support
+for workloads outside of Kubernetes. This new &ldquo;mesh expansion&rdquo; feature allows
+Linkerd users for the first time to bring applications running on VMs, physical
+machines, and other non-Kubernetes locations into the mesh, delivering Linkerd&rsquo;s
+uniform layer of secure, reliable, and observable connectivity across both
+Kubernetes and non-Kubernetes workload alike.
+The 2.15 release also introduces support for SPIFFE, a
+standard for workload identity which allows Linkerd to provide cryptographic
+identity and authentication to off-cluster workloads, and for native sidecar
+containers, a new Kubernetes feature that eases some of the long-standing
+annoyances of the sidecar model in Kubernetes, especially with Job workloads."><meta property="og:url" content="https://travisbeckham.github.io/2024/02/21/announcing-linkerd-2.15/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Announcing Linkerd 2.15 with mesh expansion, native sidecars, and SPIFFE"><meta property="og:description" content="Today we’re happy to announce the release of Linkerd 2.15, which adds support for workloads outside of Kubernetes. This new “mesh expansion” feature allows Linkerd users for the first time to bring applications running on VMs, physical machines, and other non-Kubernetes locations into the mesh, delivering Linkerd’s uniform layer of secure, reliable, and observable connectivity across both Kubernetes and non-Kubernetes workload alike.
+The 2.15 release also introduces support for SPIFFE, a standard for workload identity which allows Linkerd to provide cryptographic identity and authentication to off-cluster workloads, and for native sidecar containers, a new Kubernetes feature that eases some of the long-standing annoyances of the sidecar model in Kubernetes, especially with Job workloads."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2024-02-21T00:00:00+00:00"><meta property="article:modified_time" content="2024-02-21T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2024/02/21/announcing-linkerd-2.15/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2024/02/21/announcing-linkerd-2.15/cover.jpg"><meta name=twitter:title content="Announcing Linkerd 2.15 with mesh expansion, native sidecars, and SPIFFE"><meta name=twitter:description content="Today we’re happy to announce the release of Linkerd 2.15, which adds support for workloads outside of Kubernetes. This new “mesh expansion” feature allows Linkerd users for the first time to bring applications running on VMs, physical machines, and other non-Kubernetes locations into the mesh, delivering Linkerd’s uniform layer of secure, reliable, and observable connectivity across both Kubernetes and non-Kubernetes workload alike.
+The 2.15 release also introduces support for SPIFFE, a standard for workload identity which allows Linkerd to provide cryptographic identity and authentication to off-cluster workloads, and for native sidecar containers, a new Kubernetes feature that eases some of the long-standing annoyances of the sidecar model in Kubernetes, especially with Job workloads."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2024/02/21/announcing-linkerd-2.15/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2024-02-21T00:00:00Z","dateModified":"2024-02-21T00:00:00Z","headline":"Announcing Linkerd 2.15 with mesh expansion, native sidecars, and SPIFFE","image":"https://travisbeckham.github.io/2024/02/21/announcing-linkerd-2.15/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Announcing Linkerd 2.15 with mesh expansion, native sidecars, and SPIFFE</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Feb 21, 2024 • 8 min read</div></div></div></div><div class=blog-post__cover><img src=/2024/02/21/announcing-linkerd-2.15/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>Today we&rsquo;re happy to announce the release of Linkerd 2.15, which adds support
+for workloads outside of Kubernetes. This new &ldquo;mesh expansion&rdquo; feature allows
+Linkerd users for the first time to bring applications running on VMs, physical
+machines, and other non-Kubernetes locations into the mesh, delivering Linkerd&rsquo;s
+uniform layer of secure, reliable, and observable connectivity across both
+Kubernetes and non-Kubernetes workload alike.</p><p>The 2.15 release also introduces support for <a href=https://spiffe.io target=_blank rel=noopener>SPIFFE</a>, a
+standard for workload identity which allows Linkerd to provide cryptographic
+identity and authentication to off-cluster workloads, and for native <em>sidecar
+containers</em>, a new Kubernetes feature that eases some of the long-standing
+annoyances of the sidecar model in Kubernetes, especially with Job workloads.</p><p>Finally, this release introduces some important changes in the way that we&rsquo;re
+publishing Linkerd. While Linkerd will always be open source, as of 2.15, we
+will no longer be producing open source stable release artifacts. If you&rsquo;re
+running Linkerd in production today, please see the section
+<a href=#a-new-model-for-stable-releases>A new model for stable releases</a> below for
+what this means for you.</p><p>As usual, the 2.15 release includes a massive list of bugfixes and improvements.
+Read on for details!</p><h2 id=mesh-expansion>Mesh expansion</h2><p>As
+<a href=https://linkerd.io/2023/11/07/linkerd-mesh-expansion/ target=_blank rel=noopener>we promised last November</a>,
+Linkerd 2.15 introduces <em>mesh expansion</em>: the ability to deploy Linkerd&rsquo;s
+ultralight Rust microproxies anywhere outside of Kubernetes and connect them to
+a Linkerd control plane running on a Kubernetes cluster. This allows Linkerd to
+handle non-Kubernetes workloads, upleveling all TCP communication to and from
+these workloads secure, reliable, and observable. Non-Kubernetes applications
+get the full set of Linkerd features, including mutual TLS, retries, timeouts,
+circuit breaking, latency-aware load balancing, dynamic per-request routing,
+zero trust authorization policies, and much more.</p><p>Mesh expansion is an important part of achieving our goal of making Linkerd the
+<em>universal networking layer for cloud native organizations</em>. While we love
+Kubernetes, we recognize that even the most sophisticated organizations often
+still have significant investments in applications that don&rsquo;t run outside of it.
+With Linkerd 2.15, regardless of whether your workloads are running on
+resource-constrained ARM64 edge devices, legacy &ldquo;big iron&rdquo; VMs, or physical
+machines in your server closet, Linkerd&rsquo;s uniform layer of security,
+reliability, and observability is at your disposal.</p><p>This move was made significantly easier by Linkerd&rsquo;s core design of ultralight
+microproxies written in the Rust programming language. The use of Rust, which
+has the
+<a href="https://github.blog/2023-08-30-why-rust-is-the-most-admired-language-among-developers/#:~:text=Rust%27s%20minimal%20runtime%20and%20control,%2Dtime%2C%20and%20efficiency%20needs." target=_blank rel=noopener>&ldquo;ability to prevent memory-related bugs, manage concurrency, and generate small, efficient binaries&rdquo;</a>
+allows Linkerd not just to avoid the memory vulnerabilities that are endemic to
+languages like C and C++, but to provide minimal resource footprint and—most
+importantly—a minimal operational burden to the user. Linkerd&rsquo;s Rust
+microproxies are key to its simplicity-first approach, and our ability to
+deliver small, static binaries which can be compiled for a wide variety of
+architectures and platforms was key to unlocking Linkerd&rsquo;s new mesh expansion
+capabilities.</p><h2 id=spiffe-support>SPIFFE support</h2><p>One major challenge in mesh expansion is how to generate <em>workload identities</em>
+for non-Kubernetes workloads. To solve this, we introduced support for
+<a href=https://spiffe.io target=_blank rel=noopener>SPIFFE</a>, a CNCF graduated project that addresses exactly
+that concern.</p><p>Workload identity is central to Linkerd&rsquo;s approach to communication security.
+Rather than relying on easily-spoofed IP addresses to identify clients and
+servers, Linkerd <em>doesn&rsquo;t trust the network</em>: it secures communication with
+mutual TLS, which not only encrypts the communication and prevents tampering,
+but also but cryptographically authenticates the identities of client and server
+based on unique workload identities. Mutual TLS is a stricter variation of the
+same well-established protocol (TLS) that powers the majority of the Internet
+today.</p><p>Prior to Linkerd 2.15, Linkerd could simply use the workload&rsquo;s Kubernetes
+ServiceAccount to automatically generate a workload identity. Using this
+pre-existing identity was central to our &ldquo;zero config zero trust&rdquo; approach that
+makes dropping mTLS into an existing Kubernetes application trivial, and we
+continue to support it in Linkerd 2.15.</p><p>For workloads running outside of Kubernetes, however, there are no
+ServiceAccounts to rely on: only applications running on machines. To solve
+this, we turned to SPIFFE, a standard hosted by the CNCF, and its reference
+implementation, SPIRE. These two projects solve the problem of generating secure
+workload identity for arbitrary processes on arbitrary machines. Linkerd 2.15
+generates SPIFFE ids for non-Kubernetes workloads using SPIRE, and these ids can
+be used alongside Linkerd&rsquo;s existing ServiceAccount-based ids as the basis for
+Linkerd&rsquo;s zero-trust authorization policies.</p><p>With Linkerd 2.15 you can now encrypt all traffic to your VM workloads by
+default, and add zero-trust controls over all access right down to the level of
+individual HTTP routes and gRPC methods for specific clients.</p><h2 id=native-sidecar-support>Native sidecar support</h2><p>Linkerd 2.15 adds support for native <em>sidecar containers</em>, a new Kubernetes
+feature that was introduced in 1.28 and is enabled by default in Kubernetes
+1.29. Deploying Linkerd with native sidecars
+<a href=https://buoyant.io/blog/kubernetes-1-28-revenge-of-the-sidecars target=_blank rel=noopener>fixes some of the long-standing annoyances of using sidecar containers in Kubernetes</a>,
+especially around support for Jobs and race conditions around container startup.</p><h2 id=a-new-model-for-stable-releases>A new model for stable releases</h2><p>In Linkerd 2.15 we&rsquo;re making some significant changes to the way that Linkerd is
+delivered.</p><p>While Linkerd will always be open source, as of Linkerd 2.15, producing stable
+Linkerd releases will be in the hands of the vendor community. This includes not
+just Linkerd 2.15.0 but point releases like the upcoming Linkerd 2.15.1, major
+releases like the upcoming 2.16.0, and backports like the upcoming Linkerd
+2.14.11, all of which will be handled by the vendor community.</p><p>We&rsquo;ll continue publishing edge releases to the GitHub repo as usual, which
+contain the latest Linkerd code including bugfixes, new features, and more.
+These have always served as a valuable mechanism for early testing and vetting
+by the community, and we hope to see more of this under this new framework. And,
+of course, Linkerd development continues as normal, including feature
+development, our security vulnerability response policy, and all the other
+activities that go into making Linkerd great.</p><p>Buoyant, the creators of Linkerd,
+<a href=https://buoyant.io/blog/announcing-linkerd-2-15-vm-workloads-spiffe-identities target=_blank rel=noopener>have announced the release of Buoyant Enterprise for Linkerd 2.15.0 and provided some context behind this change</a>.</p><p>To be clear: Linkerd continues to be, and always will be, open source. This
+change is about the release artifacts, not about code, governance, community, or
+anything else. We&rsquo;ve been open source users, contributors, and advocates since
+long before we created Linkerd, and our commitment to a healthy, inclusive,
+collaborative, and ever-growing open source Linkerd remains as strong as ever.</p><h2 id=whats-next-for-linkerd>What&rsquo;s next for Linkerd?</h2><p>You might&rsquo;ve noticed that the pace of iteration for Linkerd has increased
+substantially. Over the past 6 months alone we&rsquo;ve shipped 12 stable releases, 16
+edge releases, and merged hundreds and hundreds of branches, while keeping our
+quality bar as high as ever—if not higher. Momentum compounds, and we&rsquo;re excited
+to tackle the next set of challenges.</p><p>First, there are a couple important features that didn&rsquo;t quite make it into
+2.15.0 that we&rsquo;re going to address as part of subsequent point releases. This
+starts with <strong>extending our support for mesh expansion to include private
+networks</strong>, so that customers who don&rsquo;t have a shared flat network spanning
+Kubernetes and non-Kubernetes applications can make full use of the new mesh
+expansion capabilities.</p><p>We&rsquo;re also going to <strong>bring our Gateway API and non-Gateway API interfaces up to
+parity</strong> in an upcoming 2.15 point release. Today we have a non-unified set of
+APIs across our Gateway API-based configs and our earlier pre-Gateway API
+configs, and that causes unnecessary friction for users. While we believe that
+the Gateway API is the future, we recognize it&rsquo;s not the present for many users.
+We&rsquo;re committed to supporting our users who are using ServiceProfiles and other
+pre-Gateway API configuration mechanisms, and bringing these two interfaces into
+parity is vital to achieving that goal.</p><p><strong>Support for IPv6</strong> is another short-term priority for Linkerd and we expect to
+have some news regarding that in the near future. We&rsquo;ve seen increasing demands
+for this from our customers and the required changes are reasonably well-scoped.</p><p>Beyond those smaller features, we&rsquo;re very excited to work on two big ones in the
+short term: <strong>handling ingress traffic</strong> and <strong>adding control over egress
+traffic</strong>. These are very common requests from customers who want to extend
+Linkerd&rsquo;s comprehensive yet <em>simple</em> layer of traffic control, security, and
+visibility to handle traffic in and out of the cluster, and we have some very
+exciting ideas for how to deliver this.</p><p>Finally, we continue to investigate other ways of delivering Linkerd, including
+&ldquo;ambient&rdquo; and other approaches. While Linkerd&rsquo;s unique Rust microproxy approach
+means it doesn&rsquo;t suffer from the same downsides as Envoy-based service meshes,
+we&rsquo;re not religious about our decisions, and continually evaluate the tradeoffs
+at hand in the interest of operational simplicity for our customers.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a graduated project of the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is
+<a href=/2019/10/03/linkerds-commitment-to-open-governance/>committed to open governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=/community/get-involved/>mailing lists</a>. Come and join the fun!</p><h2 id=photo-credit>Photo credit</h2><p>Photo by
+<a href="https://unsplash.com/@redcharlie?utm_content=creditCopyText&amp;utm_medium=referral&amp;utm_source=unsplash" target=_blank rel=noopener>redcharlie</a>
+on
+<a href="https://unsplash.com/photos/three-rhinos-walking-on-farm-road-xtvo0ffGKlI?utm_content=creditCopyText&amp;utm_medium=referral&amp;utm_source=unsplash" target=_blank rel=noopener>Unsplash</a></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/02/06/linkerd-certificates-with-vault/thumbnail.jpg alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/02/06/linkerd-certificates-with-vault/>Workshop Recap: Linkerd Certificate Management with Vault</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Feb 6, 2024 • 15 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2023/09/12/linkerd-214/thumbnail.jpg alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2023/09/12/linkerd-214/>Workshop Recap: A closer look at flat-network multicluster and HTTPRoute timeouts with Linkerd 2.14</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 12, 2023 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

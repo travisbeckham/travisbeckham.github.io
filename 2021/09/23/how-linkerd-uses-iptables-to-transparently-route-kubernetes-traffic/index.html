@@ -1,0 +1,180 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>How Linkerd uses iptables to transparently route Kubernetes traffic | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='This blog post will look at how Linkerd uses iptables to intercept the TCP
+traffic to and from Kubernetes pods and route it through "sidecar" proxies
+without the application knowing.'><meta property="og:url" content="https://travisbeckham.github.io/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="How Linkerd uses iptables to transparently route Kubernetes traffic"><meta property="og:description" content='This blog post will look at how Linkerd uses iptables to intercept the TCP
+traffic to and from Kubernetes pods and route it through "sidecar" proxies
+without the application knowing.'><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2021-09-23T00:00:00+00:00"><meta property="article:modified_time" content="2021-09-23T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/cover.png"><meta name=twitter:title content="How Linkerd uses iptables to transparently route Kubernetes traffic"><meta name=twitter:description content='This blog post will look at how Linkerd uses iptables to intercept the TCP
+traffic to and from Kubernetes pods and route it through "sidecar" proxies
+without the application knowing.'><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Matei David","datePublished":"2021-09-23T00:00:00Z","dateModified":"2021-09-23T00:00:00Z","headline":"How Linkerd uses iptables to transparently route Kubernetes traffic","image":"https://travisbeckham.github.io/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>How Linkerd uses iptables to transparently route Kubernetes traffic</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/matei-david.jpg alt="Matei David" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Matei David</div><div class=blog-post-meta__date>Sep 23, 2021 • 11 min read</div></div></div></div><div class=blog-post__cover></div><div class="blog-post__content prose"><p>This blog post will look at how Linkerd uses iptables to intercept the TCP
+traffic to and from Kubernetes pods and route it through
+<a href=https://linkerd.io/service-mesh-glossary/#sidecar-proxy target=_blank rel=noopener>&ldquo;sidecar&rdquo; proxies</a>
+without the application knowing. This ability to transparently route traffic
+is key to Linkerd&rsquo;s entire feature set, from
+<a href=https://linkerd.io/service-mesh-glossary/#golden-metrics target=_blank rel=noopener>golden metrics</a>
+to <a href=https://buoyant.io/mtls-guide/ target=_blank rel=noopener>mTLS</a>,
+from request retries to gRPC load balancing. And, while iptables is
+a particularly hairy bit of the networking stack, it is both powerful and
+flexible. So read on as we uncover some of the mysteries of iptables,
+including what it is, how it works in the Kubernetes world, and how service
+meshes like Linkerd use it.</p><h2 id=introduction>Introduction</h2><p>Ahead of our eagerly anticipated 2.11 release for Linkerd, my colleagues and
+I had the opportunity to rework how
+<a href=https://github.com/linkerd/linkerd2-proxy target=_blank rel=noopener>Linkerd2-proxy</a> behaves when
+forwarding traffic to an application process in a pod. Inbound traffic was
+always forwarded to a port bound on localhost, regardless of the actual
+inbound address. This had the unintended consequence of exposing ports not
+bound on public interfaces to other pods in the
+<a href=https://linkerd.io/service-mesh-glossary/#cluster target=_blank rel=noopener>cluster</a>.
+We changed the proxy to forward traffic to the original address to harden
+security and better integrate with the upcoming policy feature. During
+testing, we noticed the changes introduced a strange looping behavior—a
+request would start being processed by the inbound side of the proxy but,
+instead of being forwarded to the application process, it would leave the
+proxy and come right back!</p><p>Coincidentally, around the same time, I became more and more interested in
+CNIs and the dreaded <strong>iptables</strong>. As soon as I noticed this strange looping
+behavior, I knew I had to satisfy my curiosity and do a deep dive into the
+magical powers of <a href=https://www.netfilter.org target=_blank rel=noopener>netfilter</a>. And magical it is
+because <em>netfilter</em>—and more accurately, its packet filtering kernel module,
+iptables—facilitates proxying in a Kubernetes cluster. Most service meshes rely
+on it to configure traffic forwarding rules, and from that perspective, Linkerd
+is not an exception. While this article focuses on the iptables module that we
+all know and love to hate, it’s worth pointing out that Linkerd only uses the
+<em>iptables interface</em>. Without any code changes, the backend can be
+<a href=https://www.mail-archive.com/netdev@vger.kernel.org/msg217095.html target=_blank rel=noopener>transparently replaced</a>
+with a BPF alternative (i.e. <em>bpfilter</em>), as long as it’s enabled in the kernel.</p><p>Naturally, as many people will tell you, iptables are not fun to debug and look
+into, as integral as they are. As such, I took it upon myself to document this
+underappreciated core component, the firewall that configures traffic routing to
+and from the sidecar proxy. I will not cover iptables or Linux networking
+in-depth. That’s better left to some of the existing articles on the topic
+(recommended readings listed below).</p><h2 id=why-do-we-need-iptables>Why do we need iptables?</h2><p>It would be natural to talk about what Linkerd does for you before talking about
+what iptables does for Linkerd. A
+<strong><a href=https://linkerd.io/service-mesh-glossary/#service-mesh target=_blank rel=noopener>service mesh</a></strong>
+adds <em><a href=https://linkerd.io/service-mesh-glossary/#observability target=_blank rel=noopener>observability</a>,
+security</em>, and <em>reliability</em> features to an application, but it does so at a
+platform layer. The mesh consists of a <em>data plane</em>, represented by a group of
+network proxies that sit in between your applications, and a
+<em><a href=https://linkerd.io/service-mesh-glossary/#control-plane target=_blank rel=noopener>control plane</a></em> that
+provides an
+<a href=https://linkerd.io/2021/04/01/introduction-to-the-service-mesh/#what-is-a-service-mesh target=_blank rel=noopener>interface for the humans operating the mesh</a>.
+Linkerd uses its own
+<a href=https://linkerd.io/2020/12/03/why-linkerd-doesnt-use-envoy/ target=_blank rel=noopener>ultralight, Rust-based &ldquo;micro-proxy&rdquo;</a>
+for the data plane for security and performance reasons—each instance of an
+application that participates in the mesh gets its <strong>Linkerd2-proxy</strong> running
+beside it. We say that the proxy runs as a “sidecar”—it is just another container
+in your application’s pod.</p><figure><img alt="Linkerd architecture" class="img img--max-fill img--center img--rounded" src=/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/linkerd-architecture.png><figcaption>Fig 1.1: Linkerd architecture</figcaption></figure><p>In <strong>fig 1.1</strong> you can see the service mesh architecture. The control plane is
+deployed in a cluster and helps the proxy in its decision-making process. Each
+pod in the mesh uses a sidecar deployment model; the proxy becomes the traffic
+“conduit” to and from your application.</p><p>You might have noticed that in the diagram, we have an additional container
+in the pod—<em>linkerd-init</em>. If you guessed this is where our journey into
+iptables begins, then you’re most right.</p><h2 id=init-containers-and-pod-networking>Init Containers and pod networking</h2><p>In the Kubernetes networking model, each pod has its IP address; pods talk to
+each other
+<a href=https://ronaknathani.com/blog/2020/08/how-a-kubernetes-pod-gets-an-ip-address/ target=_blank rel=noopener>using their assigned IP addresses</a>.
+Each pod also runs in its networking namespace; as noted in
+“<a href=https://sookocheff.com/post/kubernetes/understanding-kubernetes-networking-model/#container-to-container target=_blank rel=noopener>A Guide to the Kubernetes Networking Model</a>,"
+this provides pods with their own brand new network stack for all processes
+within the namespace. They have their routes, network devices,
+and <strong>firewall rules</strong>.</p><p>These considerations are important to us, especially in the context of proxying
+traffic. Ideally, the proxy is <em>selectively injected into a pod</em>.
+Applications should not be forced to participate in the mesh (it should be
+opt-in), and having a network namespace per pod gives us a clearly defined
+boundary for our configuration. Next, having separate networking devices and
+firewall rules for each pod gives us an easy way to configure routing—after
+all, iptables have been historically used to route traffic, and we want to
+route all traffic through the proxy. Let’s recap: <em>we can configure pods to
+route traffic through the proxy, and the configuration applies only to the pod
+itself</em>. The only thing we are missing is how to configure this. <strong>Enter the
+init container.</strong></p><p>The Kubernetes
+<a href=https://kubernetes.io/docs/concepts/workloads/pods/init-containers/ target=_blank rel=noopener>official documentation</a>
+on the topic describes init containers best: <em>a pod may have multiple containers
+running within it</em>, but it can also have one or more <strong>init containers</strong>, which
+are run before the app containers are started. In other words, init containers
+are akin to a <strong>Job</strong>: they run once until completion before your main
+application starts and, if they fail, the whole pod fails. Linkerd uses init
+containers to set up traffic rules before an application starts—you guessed it,
+through iptables.</p><h2 id=sysadmins-hate-them-ten-simple-rules-to-live-by-if-you-want-to-proxy-traffic>“Sysadmins hate them! Ten simple rules to live by if you want to proxy traffic”</h2><p>We are finally getting to the good part. We’ve established why we use init
+containers and how it is possible to set up iptables for each pod, but what
+about the actual setup? How many lines of code does it take to route traffic
+between processes in the kernel? Not that many. We have <strong>ten rules</strong> (ish) to
+make this happen. I would feel incredibly guilty if I relied entirely on other
+freely available material to get you up to speed on <strong>iptables</strong>, so I will give
+you my own understanding in a few sentences.</p><p>When a packet arrives fresh off the network interface, the kernel goes through a
+decision process in which it decides what to do with it. A packet may be
+forwarded to another hop, rejected, or processed locally. A critical authority
+figure in this decision-making process is <em>Netfilter</em>, the kernel’s packet
+filtering subsystem. Filtering rules are configured through <em>iptables</em>, and it
+goes like this: a table is composed of multiple chains, each chain has one or
+more rules. These rules match a packet. When a packet is matched, an action (or
+a <em>target</em> in iptables lingo) is taken.</p><p>Tables, chains, and rules are traversed for a packet, and order matters. There
+are a couple of built-in tables, and each table has a set of default chains. For
+Linkerd, we are concerned primarily with the <strong>nat</strong> (network address
+translation) table. The nat table allows us to rewrite the packet&rsquo;s source
+and/or destination, and that’s exactly what we look for when proxying traffic.
+When a packet arrives, we want to rewrite its destination to the proxy instead
+of the application process. When a packet leaves, we want it to go through the
+proxy instead of simply leaving it on the network interface. The nat table has
+two default chains that allow us to configure this behaviour: the <em>PREROUTING</em>
+chain, which is traversed when a packet arrives from a network interface, and
+the <em>OUTPUT</em> chain, which is traversed when a local process produces a packet.</p><p>Armed with this archaic knowledge, we are ready to look at how packets are
+handled <strong>on the inbound side</strong> of the proxy. Communication between proxies is
+opportunistically upgraded to HTTP/2 (unless an opaque transport is used) and
+opportunistically <a href=https://linkerd.io/service-mesh-glossary/#mtls target=_blank rel=noopener>mTLS</a>’d.
+This means that the proxy should first handle any packet that comes in our
+networking namespace—we otherwise risk sending a payload to the application we
+won’t be able to make sense of.</p><figure><img alt="Inbound side of iptables" class="img img--max-fill img--center img--rounded" src=/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/iptables-fig2-1.png><figcaption>Fig 2.1: inbound side of iptables</figcaption></figure><p><strong>Fig 2.1</strong> describes the flow of a packet on the inbound side. We first create
+a new chain and attach that to the nat table. Since traffic first comes through
+the prerouting chain, we attach a rule that sends packets to our newly created
+chain. After “jumping” to our chain, a packet goes through two more rules:</p><ul><li>We check whether the destination port should be ignored
+(<a href=https://linkerd.io/2021/02/23/protocol-detection-and-opaque-ports-in-linkerd/ target=_blank rel=noopener>since Linkerd 2.9, certain ports may be skipped</a>).
+If the port is skipped, the packet makes it directly to the application.</li><li>If the packet does not match any of the destination ports, it’s simply
+forwarded to the proxy’s inbound port. Under the hood, iptables will rewrite
+the header of our packet and change its IP address to “localhost” and its port
+to 4143. The kernel is smart—it saves the original destination of the packet,
+which the proxy is able to access through the <strong>SO_ORIGINAL_DST</strong> socket option.
+After processing, the proxy will produce a new packet that will be forwarded to
+the application process. The packet produced by the proxy will go to the output
+chain (confusing, I know). Fortunately, a rule which we will cover in a second,
+will allow the packet to skip any further processing and go directly to
+its destination.</li></ul><figure><img alt="Outbound side of iptables" class="img img--max-fill img--center img--rounded" src=/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/iptables-fig2-2.png><figcaption>Fig 2.2: outbound side of iptables</figcaption></figure><p>The outbound counterpart is slightly harder to understand but follows a similar
+flow. <strong>Fig 2.2</strong> describes how a packet makes its way out of the network
+namespace by traversing the same nat table. Once again, we create a new chain
+and add a couple of rules. Previously, we “jumped” from the prerouting chain.
+With outbound, we “jump” from the output chain — the first to be traversed by a
+packet on its way out:</p><ul><li>Any packet produced by the proxy (with a hardcoded user-id), is automatically
+ignored from processing. On the inbound side, this allows us to send a packet to
+the application. On the outbound side, it allows our packet to leave on the
+network card.</li><li>Any packet sent over the <em>loopback interface</em> will be automatically ignored.
+If, for example, two containers in the same pod talk directly to each other,
+they will not be sent through the proxy (more on this later).</li><li>Like its inbound counterpart, the ignore port rule will skip processing the
+packet and send it directly out. This is useful for certain types of traffic
+that the proxy should not handle.</li><li>Finally, if we have made it this far in the chain, we know the packet has been
+created by the application process and is destined for a server (perhaps),
+in which case we want the proxy to intercept it.</li></ul><h2 id=but-wait-theres-more>But wait&mldr; there&rsquo;s more!</h2><p>One rule, in particular, may seem out of place. You might be wondering, “why do
+we need to ignore loopback traffic”? We have a few exceptions with the outbound
+traffic. When an application wants to talk to itself (or another container in
+the pod), we want to skip proxying traffic for several reasons. The most obvious
+one is: <em>we can’t do service discovery on ports bound on localhost</em>. It’s not as
+if we have many endpoints to pick from anyway. Packets that circulate over the
+loopback interface are also exempt from traversing the prerouting chain. It’s
+not of our choosing, it’s just an optimization the kernel does on its own.</p><p>An application may talk to itself via its clusterIP service, however. In this
+case, the packet would be processed by the proxy. If the proxy picks the
+originating pod as the endpoint the packet will <em>still be forwarded over the
+loopback interface</em>. The kernel knows the packet&rsquo;s destination is local, so it
+intelligently saves this route and associates it with loopback. In such cases,
+we’d need to either reroute our packet through the prerouting chain or skip the
+proxy altogether, otherwise, the process will receive an encrypted packet. This
+is what caused the looping behavior I spoke of earlier in the article. In
+keeping with our philosophy of simplicity, in Linkerd, we decided to skip
+mTLSing when the packet stays local. As cliché as it sounds, a picture is worth
+a thousand words. <strong>Fig 2.3</strong> and <strong>fig 2.4</strong> describe the scenarios outlined
+above.</p><h2 id=wrapping-it-up>Wrapping it up</h2><p>Hopefully, I was able to turn you into a Kubernetes iptables expert. The
+powerful iptables handles packet filtering at low levels; service meshes
+(including Linkerd) are reliant on it to provide a way of proxying traffic to
+and from an application container. I hope to have demystified some of the rules
+that we put in place through our <em>linkerd-init container</em>. Although not critical
+to operate the world’s fastest, lightest service mesh, it&rsquo;s useful to know,
+especially since proxying traffic can often appear as if it was magic.</p><figure><img alt="outbound localhost edge case" class="img img--max-fill img--center img--rounded" src=/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/iptables-fig2-3.png><figcaption>Fig 2.3: outbound localhost edge case</figcaption></figure><figure><img alt="outbound non-loopback local edge case" class="img img--max-fill img--center img--rounded" src=/2021/09/23/how-linkerd-uses-iptables-to-transparently-route-kubernetes-traffic/iptables-fig2-4.png><figcaption>Fig 2.4: outbound non-loopback local edge case</figcaption></figure><h3 id=reading-list>Reading List</h3><p>I recommend reading these articles to further explore iptables conceptually and how
+container networking works in a nutshell.</p><ul><li>Julia Evans'
+<a href=https://jvns.ca/blog/2016/12/22/container-networking/ target=_blank rel=noopener>container networking overview</a></li><li><a href=https://sookocheff.com/post/kubernetes/understanding-kubernetes-networking-model/ target=_blank rel=noopener>Networking in Kubernetes</a></li><li><a href=https://linux.die.net/man/8/iptables target=_blank rel=noopener>IP Tables man pages</a></li><li><a href=https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html target=_blank rel=noopener>IP Tables tutorial</a></li></ul></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2022/12/01/what-really-happens-at-startup-a-deep-dive-into-linkerd-init-containers-cni-plugins-and-more/thumbnail.jpg alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2022/12/01/what-really-happens-at-startup-a-deep-dive-into-linkerd-init-containers-cni-plugins-and-more/>What really happens at startup: Linkerd, init containers, the CNI, and more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Dec 1, 2022 • 12 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2021/06/24/multi-cluster-kubernetes-with-headless-services/cover.png alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2021/06/24/multi-cluster-kubernetes-with-headless-services/>Multi-Cluster Kubernetes with Headless Services</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Jun 24, 2021 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2020/03/23/serverless-service-mesh-with-knative-and-linkerd/cover.png alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2020/03/23/serverless-service-mesh-with-knative-and-linkerd/>Serverless Service Mesh with Knative and Linkerd</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Mar 23, 2020 • 13 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

@@ -1,0 +1,168 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Workshop recap: A deep dive into Kubernetes mTLS with Linkerd | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="This blog post is based on a workshop I recently delivered at Buoyant’s
+Service Mesh Academy. If this seems
+interesting, check out the
+full recording!
+You don’t have to spend much time in the cloud-native world before
+mTLS comes up. It shows up over and over again,
+especially once you start talking about
+zero trust.
+So what is it? What can it do, and what can it not do?
+To answer these questions, let’s start with a quick look at TLS itself."><meta property="og:url" content="https://travisbeckham.github.io/2023/01/30/mtls-and-linkerd/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Workshop recap: A deep dive into Kubernetes mTLS with Linkerd"><meta property="og:description" content="This blog post is based on a workshop I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+You don’t have to spend much time in the cloud-native world before mTLS comes up. It shows up over and over again, especially once you start talking about zero trust. So what is it? What can it do, and what can it not do?
+To answer these questions, let’s start with a quick look at TLS itself."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-01-30T00:00:00+00:00"><meta property="article:modified_time" content="2023-01-30T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/01/30/mtls-and-linkerd/cover.png"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/01/30/mtls-and-linkerd/cover.png"><meta name=twitter:title content="Workshop recap: A deep dive into Kubernetes mTLS with Linkerd"><meta name=twitter:description content="This blog post is based on a workshop I recently delivered at Buoyant’s Service Mesh Academy. If this seems interesting, check out the full recording!
+You don’t have to spend much time in the cloud-native world before mTLS comes up. It shows up over and over again, especially once you start talking about zero trust. So what is it? What can it do, and what can it not do?
+To answer these questions, let’s start with a quick look at TLS itself."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/01/30/mtls-and-linkerd/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"Flynn","datePublished":"2023-01-30T00:00:00Z","dateModified":"2023-01-30T00:00:00Z","headline":"Workshop recap: A deep dive into Kubernetes mTLS with Linkerd","image":"https://travisbeckham.github.io/2023/01/30/mtls-and-linkerd/cover.png","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Workshop recap: A deep dive into Kubernetes mTLS with Linkerd</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/flynn.png alt=Flynn class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>Flynn</div><div class=blog-post-meta__date>Jan 30, 2023 • 11 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/01/30/mtls-and-linkerd/cover.png alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><em>This blog post is based on a workshop I recently delivered at Buoyant’s
+<a href=https://buoyant.io/service-mesh-academy target=_blank rel=noopener>Service Mesh Academy</a>. If this seems
+interesting, check out the
+<a href=https://buoyant.io/service-mesh-academy/kubernetes-mtls-with-linkerd target=_blank rel=noopener>full recording</a>!</em></p><p>You don’t have to spend much time in the cloud-native world before
+<a href=https://buoyant.io/mtls-guide target=_blank rel=noopener>mTLS</a> comes up. It shows up over and over again,
+especially once you start talking about
+<a href=https://buoyant.io/resources/zero-trust-in-kubernetes-with-linkerd target=_blank rel=noopener>zero trust</a>.
+So what is it? What can it do, and what can it not do?</p><p>To answer these questions, let’s start with a quick look at TLS itself.</p><h2 id=tls>TLS</h2><p>TLS - <em>Transport Layer Security</em> - is defined in
+<a href=https://www.rfc-editor.org/rfc/rfc8446 target=_blank rel=noopener>RFC 8446</a>. It’s the standard at the
+root of most of the secure communications happening online today. It can provide
+authentication and encryption of communications over insecure channels, and it’s
+designed to work with basically any connection-oriented Internet protocol. Note
+both that a connection is required (so HTTP/3 brings up some very interesting
+things, which I&rsquo;ll be writing about later), and that setup can be costly, so TLS
+works best when you get to reuse the connection for multiple requests.</p><h3 id=tls-certificates>TLS Certificates</h3><p>A critical component of TLS and mTLS is the <em>certificate</em>. More properly called
+<em>X.509 Certificates</em>, these things act like ID cards for the Internet. They’re
+based on asymmetric keypairs, where a cryptographic key is generated with a
+public half and a private half, and they gather up the public half of the
+keypair along with several pieces of information into one easy-to-transport blob
+of data.</p><p>Every certificate has a <em>Subject</em> and an <em>Issuer</em>:</p><ul><li>the Subject is the entity identified by the certificate;</li><li>the Issuer is an entity that has certified that the Subject really is who they
+say they are.</li></ul><p>In X.509 parlance, certifying the Subject&rsquo;s identity is called “issuing” a
+certificate. Under the hood, the Issuer makes sure of the Subject’s identity,
+then uses its own certificate to sign the Subject’s certificate. This process
+can be (and often is) repeated, so that you end up with a <em>certificate chain</em>,
+where each certificate signs the next one in the chain. At the head of the
+chain - the <em>root</em> - you have a “self-signed” certificate, where the certificate
+signs itself.</p><p>Since certificates never contain private keys, they are always safe to
+distribute far and wide, and there’s also a simple way to bundle an entire
+certificate chain into a single file that you can pass around. This allows
+anyone receiving a certificate to also have everything they need to validate all
+the signatures the entire certificate chain (since verifying a signature only
+requires access to the public key of the signer).</p><h3 id=tls-for-the-web>TLS for the Web</h3><p>While TLS can help secure basically any connection-oriented Internet protocol,
+it definitely came into its own with the World Wide Web, so it’s definitely
+worth looking to the Web as the de facto “normal” TLS use case:</p><ol><li><p>The client makes a connection to the server, and the two parties conduct a
+key exchange which sets up the encryption to be used for the rest of the
+session.</p></li><li><p>The server sends its certificate chain to the client, and the client checks
+to make sure that the server’s certificate is valid.</p></li><li><p>The client and server start exchanging encrypted data.</p></li></ol><p>Obviously I’m glossing over a lot of things here! The really critical bit to
+notice, though, is that while the client verifies the server’s identity, the
+server does <em>not</em> verify the client’s identity. In other words, TLS is doing
+unidirectional authentication – and it’s barely doing authorization at all.
+Remember:</p><ul><li><p>Authentication (<em>authn</em>) has to do with identity: are you who you’re claiming
+to be?</p></li><li><p>Authorization (<em>authz</em>) has to do with policy: are you allowed to do the thing
+you’re trying to do?</p></li></ul><p>The only authorization check in TLS is determining that the server has a valid
+certificate, ultimately signed by an issuer that your browser trusts. This is
+pretty minimal, but it’s usually OK for the Web — it will protect the human
+using a Web browser from being fooled by a malicious Web server, and that’s
+often all that’s necessary.</p><p>The cloud-native world, though, is not the Web.</p><h3 id=tls-for-the-cloud-native-world>TLS for the Cloud-Native World</h3><p>In a cloud-native application, we’re looking at applications built out of
+microservices, which talk to each other in complex ways. The goals are different
+here, because of the nature of security in this world.</p><p>In particular, the cloud-native world doesn’t really have the concept of a
+security perimeter any more. Instead, we have to verify <em>every</em> access made to a
+microservice, <em>every</em> time – this is a foundation of zero trust, and it relies
+on authenticating both parties in order to authorize the request. We need both –
+but as we saw above, “normal” TLS doesn’t do this.</p><p>Enter mTLS.</p><h2 id=mtls>mTLS</h2><p>mTLS stands for <em>mutual TLS</em>. It takes TLS as we’ve just described it and adds
+the extra constraint that the server must also verify the client’s identity:</p><ol><li><p>Workload A makes a connection to workload B, and the two parties conduct a
+key exchange which sets up the encryption to be used for the rest of the
+session.</p></li><li><p>Workload B sends its certificate chain to the workload A, and workload A
+checks to make sure that this chain is valid.</p></li><li><p>Workload A then sends its certificate chain to workload B, and workload B
+checks to make sure it’s valid.</p></li><li><p>The two workloads start exchanging encrypted data.</p></li></ol><p>This is a small addition with a large impact. Authenticating both parties allows
+for meaningful authorization, which the
+<a href=https://buoyant.io/service-mesh-manifesto target=_blank rel=noopener>service mesh</a> can use to enforce
+meaningful security policies. So basically, this one change gives the mesh
+everything it needs for real zero trust.</p><p>Furthermore, cryptographic authentication gets us away from using anything about
+the network itself as a proxy for identity. This is a particularly important
+point when you’re talking about code running in a cluster where you don’t really
+have control over the network infrastructure: using a network you don&rsquo;t control
+as a basis for identity gives you identity you can&rsquo;t trust.</p><h3 id=mtls-and-communications-security>mTLS and Communications Security</h3><p>One last thing, before we get into the details of mTLS in Linkerd, is a quick
+note about communications security. Proper communications security relies on
+three distinct things: <em>confidentiality</em>, <em>integrity</em>, and <em>authenticity</em>. If
+you don’t have all three, you can’t communicate securely:</p><ul><li><p>Without <em>confidentiality</em>, anyone else can eavesdrop on data in transit. mTLS
+provides confidentiality using encryption.</p></li><li><p>Without <em>integrity</em>, anyone can modify your data in transit. mTLS provides
+integrity using, basically, checksums of blocks of data. (In cryptography this
+is called a <em>message authentication code</em>, or <em>MAC</em>, but it’s important to
+realize that it’s a different meaning of “authentication”.)</p></li><li><p>Without <em>authenticity</em>, an evildoer could easily pretend to be someone you
+trust. mTLS provides authenticity using certificates.</p></li></ul><p>Note that we haven’t really said anything about authorization here. Much like
+with “normal” TLS, the only authorization that mTLS provides is the check that
+the certificates in play are valid and ultimately signed by a trusted issuer.
+Anything beyond that is up to something beyond mTLS: in our case, the service
+mesh.</p><h2 id=mtls-in-linkerd>mTLS in Linkerd</h2><p>With all that under our belt, we can - finally! - talk about mTLS in Linkerd.</p><p>Linkerd uses industry-standard mTLS, implemented as open-source Rust code, for
+workload-to-workload communication. This communications-security functionality
+is deliberately not changed from what everyone else does: it’s intentionally
+boring and safe. About the only interesting thing to point out here is that,
+since the Linkerd microproxy mediates all workload-to-workload communications,
+it&rsquo;s able to maintains long-lived proxy-to-proxy connections no matter what the
+application does, which can help reduce the overheard of TLS handshakes.</p><p>Linkerd’s certificate handling and policy enforcement, though, is worth talking
+about.</p><h3 id=certificates-in-linkerd>Certificates in Linkerd</h3><p>In Linkerd, every meshed workload gets a <em>workload certificate</em> derived from its
+Kubernetes ServiceAccount token. This gives us a solid reference point for
+workload identity: Kubernetes users are already comfortable with Kubernetes
+ServiceAccounts, so cryptographically linking the certificate and the
+ServiceAccount is a solid way of establishing cluster-wide identity for a given
+workload.</p><p>Certificates, of course, must have an Issuer, and using self-signed certificates
+for workloads would be counterproductive. Instead, Linkerd provides an internal
+<em>certifying authority</em> (CA) called <code>linkerd-identity</code>, which manages issuing and
+rotating workload certificates. <code>linkerd-identity</code> uses a two-layer hierarchy of
+trust:</p><ul><li>workload certificates are issued by the Linkerd <em>identity issuer</em>, and</li><li>the identity issuer is issued by the Linkerd <em>trust anchor</em>.</li></ul><p>Linkerd uses two layers to reduce operational complexity when it comes time to
+rotate certificates: while Linkerd transparently manages rotating workload
+certificates, rotating the identity issuer and trust anchor are operational
+tasks that must be directly managed by the mesh operator. Separating the two
+layers makes it fairly straightforward to rotate the identity issuer frequently
+without downtime, and Linkerd includes support for bundling together an old and
+new trust anchor to make it possible to rotate that without downtime too.</p><p>Additionally, this system makes it (mostly) straightforward to recover from a
+secret getting lost or compromised: you can recover with exactly the same
+process you&rsquo;d use to rotate in a new certificate, and you&rsquo;ll almost never need
+to incur downtime. (I say &ldquo;almost&rdquo; because having a trust anchor get lost or
+compromised can still be very annoying. Be careful with your trust anchors!)</p><p>Of course, real-world certificate handling can still be rather annoying, so
+Linkerd can work with several other tools to reduce the pain. One common choice
+is <a href=https://cert-manager.io/ target=_blank rel=noopener>cert-manager</a>, a CNCF project that&rsquo;s all about
+managing certificates. There are also fully managed solutions like Buoyant&rsquo;s own
+<a href=https://buoyant.io/cloud/ target=_blank rel=noopener>Buoyant Cloud</a>, which can handle certificate
+management, upgrades, and alerting.</p><h3 id=authorization-in-linkerd>Authorization in Linkerd</h3><p>Earlier I said that mTLS could handle communications security, but that it
+needed outside help from the mesh to handle authorization – and, of course,
+authorization is a critical part of mTLS. Linkerd handles authorization in,
+again, a fairly straightforward way: mTLS workload certificates provide the
+basis for authorization, and Linkerd allows policies to dictate what operations
+are allowed from a given workload to a given workload.</p><p>This is more subtle than it might seem. Since workload certificates are tied to
+ServiceAccounts, this mechanism of using mTLS workload certificates as
+authorization principals simultaneously:</p><ul><li>gives Linkerd very robust identities that are not tied to any network
+infrastructure;</li><li>gives Linkerd a way to link its authorization mechanisms with existing
+Kubernetes security scopes and mechanism;</li><li>arranges for the Linkerd security model to completely match existing
+Kubernetes mechanisms and models; and</li><li>allows identity to easily accommodate any cluster topology (for example,
+multicluster identity Just Works).</li></ul><p>So using mTLS to tie Linkerd identity to Kubernetes ServiceAccounts ends up
+being a simple-sounding decision with some pretty deep - and positive! -
+ramifications.</p><h3 id=is-mtls-all-you-need>Is mTLS All You Need?</h3><p>Spoiler alert: probably not. Sorry.</p><p>mTLS is a great tool for protecting against attacks that happen while data are
+flowing over the network. For example, spoofing attacks (where the attacker
+pretends to be someone else) generally fail when mTLS is in play: assuming that
+you&rsquo;re being careful with certificates, the bad actor won&rsquo;t have the right
+certificate. Likewise, a man-in-the-middle attacks where a bad actor is trying
+to directly modify the encrypted stream will be foiled by mTLS&rsquo; integrity
+checks, and a similar man in the middle trying to terminate and then
+re-originate mTLS will, again, be foiled by certificate checking.</p><p>However, mTLS doesn&rsquo;t do anything at all to help with attacks on data at rest,
+for example: once the data have finished traversing the network, mTLS has no
+effect on how the data are stored. And there are network-based attacks that mTLS
+can&rsquo;t defend against either: for example, in any Kubernetes implementation, an
+attacker with free access to the Node may be able to mount interesting and
+subtle attacks based on recovering private keys or modifying network rules. And
+for Linkerd specifically, communications between the microproxy and the workload
+itself happen over the loopback connection in the clear, so a bad actor who can
+snoop on localhost might be able to mount an attack there.</p><p>So, like any other security technology, you still need to think about what
+threat vectors are relevant in your application, and how to mitigate any you
+care about. mTLS is a very powerful tool in your toolbox, but it won&rsquo;t be the
+only one.</p><h2 id=mtls-zero-trust-and-linkerd>mTLS, Zero Trust, and Linkerd</h2><p>Taking all this together, mTLS ends up being a critical part of Linkerd&rsquo;s
+approach to cloud-native zero trust. Having a solid mechanism for workload
+identity tied to Kubernetes security models, and <em>not</em> tied to the network
+topology, gives Linkerd a great place to stand for taking advantage of mTLS'
+communications security and extending that into authorization and policy as
+well. And, as always, Linkerd&rsquo;s position down in the infrastructure generally
+permits it to provide these benefits without needing any application changes.</p><hr><p><em>If you want more on this topic, check out the Service Mesh Academy workshop on
+<a href=https://buoyant.io/service-mesh-academy/kubernetes-mtls-with-linkerd target=_blank rel=noopener>mTLS with Linkerd</a>
+for hands-on exploration of everything I&rsquo;ve talked about here! And, as always,
+feedback is always welcome &ndash; you can find me as <code>@flynn</code> on the
+<a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a>.</em></p></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

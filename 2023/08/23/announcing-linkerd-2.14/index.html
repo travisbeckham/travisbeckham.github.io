@@ -1,0 +1,122 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Announcing Linkerd 2.14: Improved enterprise multi-cluster, Gateway API
+conformance, and more! | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Over the past 18 months, the adoption of Linkerd has skyrocketed in enterprise
+environments, with companies like
+Adidas,
+Microsoft,
+Plaid,
+and DB Schenker deploying Linkerd to
+bring security, compliance, and reliability to their mission-critical production
+infrastructure. Today, we&rsquo;re happy to announce the release of Linkerd 2.14 with
+improved support for multi-cluster deployments on shared flat networks, full
+Gateway API conformance, and much more.
+The 2.14 release comes just four months after our massive
+Linkerd 2.13 release with circuit breaking and dynamic request routing,
+and continues Linkerd&rsquo;s focus on coupling enterprise-grade power and flexibility
+with the best operational model simplicity and lowest TCO of any service mesh."><meta property="og:url" content="https://travisbeckham.github.io/2023/08/23/announcing-linkerd-2.14/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Announcing Linkerd 2.14: Improved enterprise multi-cluster, Gateway API
+conformance, and more!"><meta property="og:description" content="Over the past 18 months, the adoption of Linkerd has skyrocketed in enterprise environments, with companies like Adidas, Microsoft, Plaid, and DB Schenker deploying Linkerd to bring security, compliance, and reliability to their mission-critical production infrastructure. Today, we’re happy to announce the release of Linkerd 2.14 with improved support for multi-cluster deployments on shared flat networks, full Gateway API conformance, and much more.
+The 2.14 release comes just four months after our massive Linkerd 2.13 release with circuit breaking and dynamic request routing, and continues Linkerd’s focus on coupling enterprise-grade power and flexibility with the best operational model simplicity and lowest TCO of any service mesh."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2023-08-23T00:00:00+00:00"><meta property="article:modified_time" content="2023-08-23T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2023/08/23/announcing-linkerd-2.14/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2023/08/23/announcing-linkerd-2.14/cover.jpg"><meta name=twitter:title content="Announcing Linkerd 2.14: Improved enterprise multi-cluster, Gateway API
+conformance, and more!"><meta name=twitter:description content="Over the past 18 months, the adoption of Linkerd has skyrocketed in enterprise environments, with companies like Adidas, Microsoft, Plaid, and DB Schenker deploying Linkerd to bring security, compliance, and reliability to their mission-critical production infrastructure. Today, we’re happy to announce the release of Linkerd 2.14 with improved support for multi-cluster deployments on shared flat networks, full Gateway API conformance, and much more.
+The 2.14 release comes just four months after our massive Linkerd 2.13 release with circuit breaking and dynamic request routing, and continues Linkerd’s focus on coupling enterprise-grade power and flexibility with the best operational model simplicity and lowest TCO of any service mesh."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2023/08/23/announcing-linkerd-2.14/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2023-08-23T00:00:00Z","dateModified":"2023-08-23T00:00:00Z","headline":"Announcing Linkerd 2.14: Improved enterprise multi-cluster, Gateway API\nconformance, and more!","image":"https://travisbeckham.github.io/2023/08/23/announcing-linkerd-2.14/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Announcing Linkerd 2.14: Improved enterprise multi-cluster, Gateway API
+conformance, and more!</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Aug 23, 2023 • 5 min read</div></div></div></div><div class=blog-post__cover><img src=/2023/08/23/announcing-linkerd-2.14/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>Over the past 18 months, the adoption of Linkerd has skyrocketed in enterprise
+environments, with companies like
+<a href=https://buoyant.io/case-studies/adidas target=_blank rel=noopener>Adidas</a>,
+<a href=https://buoyant.io/case-studies/xbox target=_blank rel=noopener>Microsoft</a>,
+<a href=https://www.cncf.io/blog/2023/07/17/plaid-pain-free-deployments-at-global-scale/ target=_blank rel=noopener>Plaid</a>,
+and <a href=https://buoyant.io/case-studies/schenker target=_blank rel=noopener>DB Schenker</a> deploying Linkerd to
+bring security, compliance, and reliability to their mission-critical production
+infrastructure. Today, we&rsquo;re happy to announce the release of Linkerd 2.14 with
+improved support for multi-cluster deployments on shared flat networks, full
+Gateway API conformance, and much more.</p><p>The 2.14 release comes just four months after our massive
+<a href=https://buoyant.io/blog/announcing-linkerd-2-13-circuit-breaking-dynamic-request-routing-fips target=_blank rel=noopener>Linkerd 2.13 release with circuit breaking and dynamic request routing</a>,
+and continues Linkerd&rsquo;s focus on coupling enterprise-grade power and flexibility
+with the best operational model simplicity and lowest TCO of any service mesh.</p><p>This release includes a lot of hard work from 25+ contributors. A special thank
+you to <a href=https://github.com/AMK9978 target=_blank rel=noopener>Amir Karimi</a>,
+<a href=https://github.com/amit-62 target=_blank rel=noopener>Amit Kumar</a>,
+<a href=https://github.com/kzap target=_blank rel=noopener>Andre Marcelo-Tanner</a>,
+<a href=https://github.com/andrew-gropyus target=_blank rel=noopener>Andrew</a>,
+<a href=https://github.com/bunnybilou target=_blank rel=noopener>Arnaud Beun</a>,
+<a href=https://github.com/proxfly target=_blank rel=noopener>Clement</a>, <a href=https://github.com/krabradosty target=_blank rel=noopener>Dima</a>,
+<a href=https://github.com/albundy83 target=_blank rel=noopener>Grégoire Bellon-Gervais</a>,
+<a href=https://github.com/harsh020 target=_blank rel=noopener>Harsh Soni</a>,
+<a href=https://github.com/jclegras target=_blank rel=noopener>Jean-Charles Legras</a>,
+<a href=https://github.com/daixiang0 target=_blank rel=noopener>Loong Dai</a>,
+<a href=https://github.com/MarkSRobinson target=_blank rel=noopener>Mark Robinson</a>,
+<a href=https://github.com/migueleliasweb target=_blank rel=noopener>Miguel Elias dos Santos</a>,
+<a href=https://github.com/pranoyk target=_blank rel=noopener>Pranoy Kumar Kundu</a>,
+<a href=https://github.com/ryanhristovski target=_blank rel=noopener>Ryan Hristovski</a>,
+<a href=https://github.com/mikutas target=_blank rel=noopener>Takumi Sue</a>,
+<a href=https://github.com/zekker6 target=_blank rel=noopener>Zakhar Bessarab</a>,
+<a href=https://github.com/hiteshwani29 target=_blank rel=noopener>hiteshwani29</a>,
+<a href=https://github.com/pheianox target=_blank rel=noopener>pheianox</a>, and
+<a href=https://github.com/pssalman target=_blank rel=noopener>pssalman</a> for all your hard work!</p><h2 id=multi-cluster-support-for-shared-flat-networks>Multi-cluster support for shared flat networks</h2><p>Linkerd 2.14 introduces improved multi-cluster support for clusters deployed on
+a shared flat network. Increasingly common in enterprise environments, this
+network architecture allows pods in different clusters to establish TCP
+connections with each other. Linkerd takes advantage of this ability to add a
+new &ldquo;gateway-less&rdquo; mode for cross-cluster communication. In this mode, Linkerd
+establishes cross-cluster connections across clusters without transiting a
+multi-cluster gateway. This improves performance by reducing the latency of
+cross-cluster calls; it improves security by preserving workload identity in
+mTLS calls across clusters; and it reduces cloud spend by reducing the amount of
+traffic that is routed through the multi-cluster gateway.</p><p>Of course, Linkerd ensures that these cross-cluster connections are established
+with all the same guarantees as in-cluster connections: they are fully
+transparent to the application with the same security, reliability, and
+observability capabilities, including encryption, authentication, and
+zero-trust-capable authorization policies. This mode is also purely additive,
+and in heterogeneous network environments where flat networks are not possible,
+Linkerd&rsquo;s existing gateway-based approach functions as normal.</p><p>Importantly, this new multi-cluster support retains a critical aspect to
+Linkerd&rsquo;s design: independence of clusters as a way of isolating security and
+failure domains. Each cluster runs its own Linkerd control plane, and the
+failure of a single cluster cannot take down the service mesh on other clusters.
+(And Linkerd provides a set of powerful techniques including
+<a href=/2.14/tasks/automatic-failover/>cross-cluster failover</a> that can be used to
+automatically route traffic to the remaining clusters.)</p><p>For more details on Linkerd&rsquo;s new support for multi-cluster across flat
+networks, see
+<a href=/2023/07/20/enterprise-multi-cluster-at-scale-supporting-flat-networks-in-linkerd/>Enterprise multi-cluster at scale: supporting flat networks in Linkerd</a>.</p><h2 id=gateway-api-conformance>Gateway API conformance</h2><p>Starting way back in the Linkerd 2.12 release, Linkerd has been on the forefront
+of adopting Kubernetes&rsquo;s new <a href=https://gateway-api.sigs.k8s.io/ target=_blank rel=noopener>Gateway API</a> as
+the core configuration mechanism for Linkerd, including for features such as
+<a href=https://linkerd.io/2.13/features/server-policy/ target=_blank rel=noopener>zero trust authorization policy</a>
+and
+<a href=https://linkerd.io/2.13/features/request-routing/ target=_blank rel=noopener>dynamic request routing</a>.
+Adopting the Gateway API has a whole host of benefits for users, from providing
+standardized mechanisms for configuring complex resources such as classes of
+HTTP requests to providing a uniform API across ingress and service meshes
+to—most importantly for Linkerd&rsquo;s philosophy of minimalism—reduction of
+additional configuration surface area, since the Gateway configuration resources
+that already live on the cluster.</p><p>In the Linkerd 2.14 release we&rsquo;re happy to report that Linkerd is now fully
+conformant with the mesh profile of the Gateway API. This means that Linkerd now
+uses the core gateway.networking.k8s.io types, and that features like retries,
+timeouts, and progressive delivery are now fully configurable via these types
+without the requirement to use the earlier ServiceProfile resources.</p><p>The Linkerd team has been co-leading the GAMMA initiative to adapt the Gateway
+API to service mesh use cases, and we&rsquo;re looking forward to watching this
+standard evolve over time.</p><h2 id=and-lots-more>And lots more!</h2><p>Linkerd 2.14 also has a tremendous list of other improvements, performance
+enhancements, and bug fixes, including:</p><ul><li>A new <code>-o json</code> flag for the linkerd multicluster gateways command</li><li>A new <code>logFormat</code> value to the multicluster Link Helm Chart (thanks
+@bunnybilou!)</li><li>New leader-election capabilities to the service-mirror controller</li><li>A new high-availability (HA) mode for the multicluster service-mirror</li><li>A new <code>outbound_http_balancer_endpoints</code> metric</li><li>A fix for missing route_ metrics for requests with ServiceProfiles</li><li>A fix for proxy startup failure when using the <code>config.linkerd.io/admin-port</code>
+annotation.</li><li>The <code>linkerd diagnostics policy</code> command now displays outbound policy when the
+target resource is a Service</li><li>A fix for HA validation checks when Linkerd is installed with Helm.</li><li>A fix for the <code>linkerd viz check</code> command so that it will wait until the viz
+extension becomes ready</li><li>A new <code>-o jsonpath</code> flag to linkerd viz tap to allow filtering output fields</li><li>Tolerations and nodeSelector support in extensions namespace-metadata Jobs</li><li>Build improvements for multi-arch build artifacts. Thanks @MarkSRobinson!!</li></ul><p>And more. See the
+<a href=https://github.com/linkerd/linkerd2/releases/tag/stable-2.14.0 target=_blank rel=noopener>full release notes</a>
+for details.</p><h2 id=whats-next>What&rsquo;s next?</h2><p>Last year was a banner year for Linkerd—the
+<a href=https://linkerd.io/2022/12/28/service-mesh-2022-recap-ebpf-gateway-api/ target=_blank rel=noopener>number of stable Kubernetes clusters running Linkerd doubled in 2022</a>,
+and the project gained
+<a href=https://linkerd.io/2022/03/09/announcing-automated-multi-cluster-failover-for-kubernetes/ target=_blank rel=noopener>multi-cluster failover</a>
+and
+<a href=https://buoyant.io/blog/announcing-linkerd-2-12 target=_blank rel=noopener>full L7 authorization policy based on the Gateway API</a>.
+In 2023, with Linkerd 2.13 and 2.14 already under our belts, we&rsquo;re off to a
+great pace. We have some amazing features and ideas up our sleeves that we can&rsquo;t
+wait to unveil later this year. Stay tuned!</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a graduated project of the
+<a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing Foundation</a>. Linkerd is
+<a href=/2019/10/03/linkerds-commitment-to-open-governance/>committed to open governance.</a>
+If you have feature requests, questions, or comments, we&rsquo;d love to have you join
+our rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=/community/get-involved/>mailing lists</a>. Come and join the fun!</p><p>(Photo by
+<a href="https://unsplash.com/@drmakete?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>drmakete lab</a>
+on
+<a href="https://unsplash.com/photos/hsg538WrP0Y?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target=_blank rel=noopener>Unsplash</a>)</p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail.png alt=Thumbnail class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>

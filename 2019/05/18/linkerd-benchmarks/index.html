@@ -1,0 +1,135 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Linkerd Benchmarks | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Update 2021-11-29: we&rsquo;ve repeated these experiments with the latest versions
+of Linkerd and Istio.
+(Update 5/30/2019: Based on feedback from the Istio team, Kinvolk has
+re-run some of the Istio
+benchmarks.
+The results are largely similar to before, with Linkerd maintaining a
+significant advantage over Istio in latency, memory footprint, and possibly
+CPU. Below, we&rsquo;ve noted the newer numbers for Istio when applicable.)
+Linkerd&rsquo;s goal is to be the fastest, lightest, simplest service mesh in the
+world. To that end, several weeks ago we asked the kind folks at
+Kinvolk to perform an independent benchmark. We wanted
+an unbiased evaluation by a third party with strong systems expertise and a
+history of benchmarking. Kinvolk fit this description to a T, and they agreed
+to take on the challenge."><meta property="og:url" content="https://travisbeckham.github.io/2019/05/18/linkerd-benchmarks/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Linkerd Benchmarks"><meta property="og:description" content="Update 2021-11-29: we’ve repeated these experiments with the latest versions of Linkerd and Istio.
+(Update 5/30/2019: Based on feedback from the Istio team, Kinvolk has re-run some of the Istio benchmarks. The results are largely similar to before, with Linkerd maintaining a significant advantage over Istio in latency, memory footprint, and possibly CPU. Below, we’ve noted the newer numbers for Istio when applicable.)
+Linkerd’s goal is to be the fastest, lightest, simplest service mesh in the world. To that end, several weeks ago we asked the kind folks at Kinvolk to perform an independent benchmark. We wanted an unbiased evaluation by a third party with strong systems expertise and a history of benchmarking. Kinvolk fit this description to a T, and they agreed to take on the challenge."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2019-05-18T00:00:00+00:00"><meta property="article:modified_time" content="2019-05-18T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2019/05/18/linkerd-benchmarks/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2019/05/18/linkerd-benchmarks/cover.jpg"><meta name=twitter:title content="Linkerd Benchmarks"><meta name=twitter:description content="Update 2021-11-29: we’ve repeated these experiments with the latest versions of Linkerd and Istio.
+(Update 5/30/2019: Based on feedback from the Istio team, Kinvolk has re-run some of the Istio benchmarks. The results are largely similar to before, with Linkerd maintaining a significant advantage over Istio in latency, memory footprint, and possibly CPU. Below, we’ve noted the newer numbers for Istio when applicable.)
+Linkerd’s goal is to be the fastest, lightest, simplest service mesh in the world. To that end, several weeks ago we asked the kind folks at Kinvolk to perform an independent benchmark. We wanted an unbiased evaluation by a third party with strong systems expertise and a history of benchmarking. Kinvolk fit this description to a T, and they agreed to take on the challenge."><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2019/05/18/linkerd-benchmarks/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2019-05-18T00:00:00Z","dateModified":"2019-05-18T00:00:00Z","headline":"Linkerd Benchmarks","image":"https://travisbeckham.github.io/2019/05/18/linkerd-benchmarks/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=/community/heroes/>Linkerd Heroes</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement>Service Mesh 101: Get Service Mesh-Certified
+<span class=main-announcement__link><a href=https://buoyant.io/courses/service-mesh-101 target=_blank rel=noopener>Enroll now</a></span></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Linkerd Benchmarks</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>May 18, 2019 • 7 min read</div></div></div></div><div class=blog-post__cover><img src=/2019/05/18/linkerd-benchmarks/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p><strong>Update 2021-11-29: we&rsquo;ve repeated these experiments with the <a href=/2021/11/29/linkerd-vs-istio-benchmarks-2021/>latest versions
+of Linkerd and Istio</a>.</strong></p><p>(<strong>Update 5/30/2019:</strong> Based on feedback from the Istio team, Kinvolk has
+<a href=https://github.com/kinvolk/service-mesh-benchmark/issues/5#issuecomment-496482381 target=_blank rel=noopener>re-run some of the Istio
+benchmarks</a>.
+The results are largely similar to before, with Linkerd maintaining a
+<em>significant</em> advantage over Istio in latency, memory footprint, and possibly
+CPU. Below, we&rsquo;ve noted the newer numbers for Istio when applicable.)</p><p>Linkerd&rsquo;s goal is to be the fastest, lightest, simplest service mesh in the
+world. To that end, several weeks ago we asked the kind folks at
+<a href=https://kinvolk.io/ target=_blank rel=noopener>Kinvolk</a> to perform an independent benchmark. We wanted
+an unbiased evaluation by a third party with strong systems expertise and a
+history of benchmarking. Kinvolk fit this description to a T, and they agreed
+to take on the challenge.</p><p>We asked Kinvolk for several things:</p><ul><li>A benchmark measuring tail latency, CPU usage, and memory consumption—the
+three metrics we believe are most indicative of the cost of operating a
+service mesh.</li><li>A comparison to the baseline of <em>not</em> using a service mesh at all.</li><li>A comparison to Istio, another service mesh. (We&rsquo;re frequently asked how
+the two compare.)</li><li>A realistic test setup for an application &ldquo;at load&rdquo; and &ldquo;at scale&rdquo;,
+including an apples-to-apples comparison between features, and controls for
+variance and measurement error.</li><li>A downloadable framework for reproducing these tests, so that anyone can
+validate their work.</li></ul><p>Today, Kinvolk published their results. You can see the full report here:
+<a href=https://kinvolk.io/blog/2019/05/kubernetes-service-mesh-benchmarking/ target=_blank rel=noopener>Kubernetes Service Mesh
+Benchmarking</a>.
+Kinvolk measured Linkerd 2.3-edge-19.5.2 and Istio 1.1.6, the latest releases
+that were available at the time of testing. They measured performance under two
+conditions: &ldquo;500rps&rdquo; and &ldquo;600rps&rdquo;, representing effectively &ldquo;high&rdquo; and &ldquo;very
+high&rdquo; load for the test harness.</p><p>Here&rsquo;s a summary of their results. (Note that for Istio, Kinvolk tested two
+configurations, &ldquo;stock&rdquo; and &ldquo;tuned&rdquo;. We&rsquo;re looking purely at the &ldquo;tuned&rdquo;
+configuration below.)</p><h2 id=latency>Latency</h2><p><img alt="500rps latency chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/500rps-latency.png>
+<img alt="600rps latency chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/600rps-latency.png></p><p>Latency is arguably the most important number for a service mesh, since it
+measures the <em>user</em>-facing (as opposed to operator-facing) impact of a service
+mesh. Latency is also the most difficult to reason about, since it is best
+measured as a distribution.</p><p>Kinvolk measured latency from the perspective of load generator, which means
+that these latency numbers are a function of the application they tested—if the
+call graph was deeper, we&rsquo;d see additional latency, and if it were shallower,
+these numbers would be less. Thus, raw numbers are not as important as the
+comparisons—how did Linkerd do versus the baseline, and versus Istio?</p><p>In the 500rps condition, Linkerd&rsquo;s p99 latency was 6.7ms, 3.6ms over the
+baseline p99 of no service mesh of 3.1ms. (In other words, 99% of the time, a
+request without a service mesh took less than 3.1 ms, and 99% of the time, a
+request with Linkerd took less than 6.7ms.) At the p999 level (the 99.9th
+percentile), Linkerd&rsquo;s latency was significantly worse, at 675ms above the
+baseline&rsquo;s p999 of 4ms. The worst response time seen over the whole test with
+Linkerd was a full 1.8s of latency, compared to the baseline&rsquo;s worst case of
+972ms.</p><p>By comparison, Istio&rsquo;s p99 latency in the 500rps case was 643ms, almost 100x
+worse than Linkerd&rsquo;s p99. Its p999 was well over a second, compared to
+Linkerd&rsquo;s 679ms, and its worst case was a full 5s of latency, 2.5x what was
+measured with Linkerd.</p><p>(<strong>Update</strong>: Kinvolk&rsquo;s re-tuned Istio benchmarks dropped Istio&rsquo;s p99 from 100x
+that of Linkerd&rsquo;s to 26x and 59x that of Linkerd&rsquo;s across two runs. It also
+dropped Istio&rsquo;s p999 to just under a second, though still <em>double</em> Linkerd&rsquo;s
+p999.)</p><p>In the 600rps condition, the difference between the two service meshes is
+exaggerated. While Linkerd&rsquo;s p99 elevates from 6.7ms to 7ms, 4ms over the &ldquo;no
+service mesh&rdquo; baseline, Istio&rsquo;s p99 was a full 4.4 minutes (!). While Linkerd&rsquo;s
+p999 climbed to 850ms, compared to the baseline of 3.8ms, Istio&rsquo;s p999 is
+almost 6 minutes. Even Istio&rsquo;s p50 (median) latency was an unacceptable 17.6
+seconds. In short, Istio was not able to perform effectively in Kinvolk&rsquo;s
+600rps condition.</p><p>(<strong>Update</strong>: Kinvolk&rsquo;s re-tuned Istio benchmark showed similar performance in
+the 600rps condition, with p99 latency for Istio remaining in the minutes and
+median latency between 10 and 20 seconds.)</p><p><strong><em>Summary: Linkerd had a latency advantage over Istio. In the 500rps
+condition, Istio&rsquo;s p99 was 100x of Linkerd&rsquo;s. in the 600rps condition, Istio&rsquo;s
+latency was unacceptable throughout. However, both meshes introduced
+significant latency at the 99.9th percentile compared to the baseline in the
+500rps condition.</em></strong></p><h2 id=memory-consumption>Memory consumption</h2><p><img alt="500rps memory chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/500rps-memory_usage.png>
+<img alt="600rps memory chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/600rps-memory_usage.png></p><p>At 500rps, Linkerd&rsquo;s memory usage was 517mb across all data plane proxies
+(averaging 5.7mb per proxy), and a little under 500mb for the control plane
+itself, for a total of ~1gb of memory. By comparison, Istio&rsquo;s memory usage was
+4307mb across all data plane proxies (averaging 47mb per proxy), and 1305mb for
+the control plane, for a total of almost 5.5gb.</p><p>The situation was almost identical in the 600rps condition. Of course, both
+meshes suffer greatly when compared to the baseline usage of 0mb!</p><p>(As a side note, 25% of Linkerd&rsquo;s control plane memory usage in these runs was
+its Prometheus instance, which temporarily stores aggregated metrics results to
+power Linkerd&rsquo;s dashboard and CLI. Arguably, this should have been excluded,
+since Prometheus was disabled in Istio.)</p><p><strong><em>Summary: Linkerd had a clear memory advantage. Istio consumed 5.5x as much
+memory as Linkerd. Linkerd&rsquo;s data plane, in particular, consumed less than an
+1/8th of the RAM that Istio&rsquo;s did.</em></strong></p><h2 id=cpu-consumption>CPU consumption</h2><p><img alt="500rps cpu chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/500rps-cpu_utilization.png>
+<img alt="600rps cpu chart" class="img img--max-fill img--center img--rounded" src=/2019/05/18/linkerd-benchmarks/600rps-cpu_utilization.png></p><p>When measuring CPU consumption, the two meshes product comparable results. In
+the 500rps run, Linkerd&rsquo;s data plane proxies took 1618mc (millicores)
+cumulatively, and its control plane consumed 82mc, for a total of 1700mc.
+Istio&rsquo;s data plane proxies consumed 1723mc and its control plane consumed
+379mc, for a total of 2100mc, a 23% increase over Linkerd. However, in the
+600rps run, the results were flipped, with Linkerd taking 1951mc vs Istio&rsquo;s
+1985mc. In this run, Linkerd&rsquo;s data plane at 600RPS condition consumed 15%
+<em>more</em> CPU than Istio&rsquo;s. (Though it should be noted that, since Istio was not
+able to actually return 600rps, it&rsquo;s not entirely a fair comparison to
+Linkerd.)</p><p><strong><em>Summary: CPU usage was similar Linkerd and Istio. Linkerd&rsquo;s data plane CPU
+utilization was higher than Istio&rsquo;s in the 600rps condition, though it&rsquo;s hard
+to know how real this result was because Istio was not able to fully perform in
+this condition.</em></strong></p><p>(<strong>Update</strong>: Kinvolk&rsquo;s re-tuned Istio benchmarks showed a &ldquo;massive increase in
+CPU usage of Istio&rsquo;s proxy sidecar&rdquo;. While no numbers were reported, from this
+description it is clear that Linkerd&rsquo;s CPU usage was less than Istio&rsquo;s in this
+configuration.)</p><h2 id=conclusion>Conclusion</h2><p>Overall we are happy with Linkerd&rsquo;s performance in this test, and we&rsquo;re very
+happy to have a thorough quantification of the relative cost of introducing a
+service mesh, and a <a href=https://github.com/kinvolk/service-mesh-benchmark target=_blank rel=noopener>publicly available, reproducible
+harness</a> for running these
+benchmarks.</p><p>We&rsquo;re pleased to see that Linkerd has a very significant advantage in latency
+and memory consumption over Istio. While CPU usage was comparable, we feel that
+Linkerd can do better. We suspect there is low-hanging fruit in linkerd-proxy,
+and we&rsquo;re eager to see if a little profiling and tuning can reduce CPU
+consumption over the next few releases. (And we&rsquo;d love your help &ndash; hop into the
+<a href=https://slack.linkerd.io target=_blank rel=noopener>Linkerd Slack</a> or <a href=https://buoyant.io/2019/04/23/linkerd-community-guide-to-kubecon-eu-2019/ target=_blank rel=noopener>come talk to us next week at
+Kubecon
+EU</a>!)</p><p>In the future, we hope that projects like <a href=https://layer5.io/meshery target=_blank rel=noopener>Meshery</a>
+can provide an industry standard approach for these sorts of benchmarks in the
+future. They&rsquo;re good for users and good for projects too.</p><p>We&rsquo;re impressed by the thoroughness of Kinvolk&rsquo;s tests, and we&rsquo;d like to thank
+them for taking on this sizeable effort. The <a href=https://kinvolk.io/blog/2019/05/kubernetes-service-mesh-benchmarking/ target=_blank rel=noopener>full
+report</a>
+details the incredible amount of effort they put into building accurate test
+conditions, reducing variability, and generating statistically meaningful
+results. It&rsquo;s definitely worth a read!</p><p>Finally, we&rsquo;d also like to extend a huge THANK YOU to the kind folks at
+<a href=https://www.packet.com/ target=_blank rel=noopener>Packet</a>, who allowed Kinvolk to use the <a href=https://github.com/cncf/cluster target=_blank rel=noopener>CNCF
+community cluster</a> to perform these
+experiments. The Linkerd community owes you a debt of gratitude.</p><hr><p>Linkerd is a community project and is hosted by the <a href=https://cncf.io target=_blank rel=noopener>Cloud Native Computing
+Foundation</a>. If you have feature requests, questions, or
+comments, we&rsquo;d love to have you join our rapidly-growing community! Linkerd is
+hosted on <a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving
+community on <a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a>,
+<a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and the <a href=https://linkerd.io/2/get-involved/ target=_blank rel=noopener>mailing
+lists</a>. Come and join the fun!</p><p>Image credit: <a href=https://www.flickr.com/photos/volvob12b/ target=_blank rel=noopener>Bernard Spragg. NZ</a></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/05/24/linkerd-and-smi/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/05/24/linkerd-and-smi/>Linkerd and SMI</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>May 24, 2024 • 2 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2021/10/28/announcing-octobers-linkerd-hero/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2021/10/28/announcing-octobers-linkerd-hero/>Announcing October's Linkerd hero</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 28, 2021 • 2 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2021/09/30/announcing-septembers-linkerd-hero/cover.jpg alt=Cover class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2021/09/30/announcing-septembers-linkerd-hero/>Announcing September's Linkerd Hero</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 30, 2021 • 2 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>
