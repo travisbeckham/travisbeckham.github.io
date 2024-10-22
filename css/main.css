@@ -825,6 +825,10 @@ Make the whole card clickable.
     width: 24px; }
   .img.img--h24 {
     height: 24px; }
+  .img.img--max-w24 {
+    max-width: 24px; }
+  .img.img--max-h24 {
+    max-height: 24px; }
   .img.img--32 {
     width: 32px;
     height: 32px;
@@ -833,6 +837,10 @@ Make the whole card clickable.
     width: 32px; }
   .img.img--h32 {
     height: 32px; }
+  .img.img--max-w32 {
+    max-width: 32px; }
+  .img.img--max-h32 {
+    max-height: 32px; }
   .img.img--48 {
     width: 48px;
     height: 48px;
@@ -841,6 +849,10 @@ Make the whole card clickable.
     width: 48px; }
   .img.img--h48 {
     height: 48px; }
+  .img.img--max-w48 {
+    max-width: 48px; }
+  .img.img--max-h48 {
+    max-height: 48px; }
   .img.img--64 {
     width: 64px;
     height: 64px;
@@ -849,6 +861,10 @@ Make the whole card clickable.
     width: 64px; }
   .img.img--h64 {
     height: 64px; }
+  .img.img--max-w64 {
+    max-width: 64px; }
+  .img.img--max-h64 {
+    max-height: 64px; }
   .img.img--80 {
     width: 80px;
     height: 80px;
@@ -857,6 +873,10 @@ Make the whole card clickable.
     width: 80px; }
   .img.img--h80 {
     height: 80px; }
+  .img.img--max-w80 {
+    max-width: 80px; }
+  .img.img--max-h80 {
+    max-height: 80px; }
   .img.img--128 {
     width: 128px;
     height: 128px;
@@ -865,6 +885,10 @@ Make the whole card clickable.
     width: 128px; }
   .img.img--h128 {
     height: 128px; }
+  .img.img--max-w128 {
+    max-width: 128px; }
+  .img.img--max-h128 {
+    max-height: 128px; }
   .img.img--160 {
     width: 160px;
     height: 160px;
@@ -873,6 +897,10 @@ Make the whole card clickable.
     width: 160px; }
   .img.img--h160 {
     height: 160px; }
+  .img.img--max-w160 {
+    max-width: 160px; }
+  .img.img--max-h160 {
+    max-height: 160px; }
   .img.img--196 {
     width: 196px;
     height: 196px;
@@ -881,6 +909,10 @@ Make the whole card clickable.
     width: 196px; }
   .img.img--h196 {
     height: 196px; }
+  .img.img--max-w196 {
+    max-width: 196px; }
+  .img.img--max-h196 {
+    max-height: 196px; }
   .img.img--256 {
     width: 256px;
     height: 256px;
@@ -889,6 +921,10 @@ Make the whole card clickable.
     width: 256px; }
   .img.img--h256 {
     height: 256px; }
+  .img.img--max-w256 {
+    max-width: 256px; }
+  .img.img--max-h256 {
+    max-height: 256px; }
 
 /*
 @markup
