@@ -1,4 +1,10 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog | Linkerd</title><link>https://travisbeckham.github.io/blog/</link><description>Recent content in Blog for Linkerd</description><generator>Hugo 0.135.0</generator><language>en-us</language><lastBuildDate>Tue, 15 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://travisbeckham.github.io/blog/feed.xml" rel="self" type="application/rss+xml"/><item><title>Linkerd Edge Release Roundup: October 2024</title><link>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</link><pubDate>Tue, 15 Oct 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the October 2024 Edge Release Roundup post, where we dive into the
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog | Linkerd</title><link>https://travisbeckham.github.io/blog/</link><description>Recent content in Blog for Linkerd</description><generator>Hugo 0.136.4</generator><language>en-us</language><lastBuildDate>Wed, 23 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://travisbeckham.github.io/blog/feed.xml" rel="self" type="application/rss+xml"/><item><title>Towards a Sustainable Service Mesh</title><link>https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/</link><pubDate>Wed, 23 Oct 2024 00:00:00 +0000</pubDate><author>William Morgan</author><guid>https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/</guid><description>&lt;p>Open source covers a vast spectrum of projects, but they all face the same
+existential threat: what ensures this project will be maintained in the future?
+Today, Linkerd adopters can be confident they&amp;rsquo;re getting the world&amp;rsquo;s simplest,
+fastest, lightest service mesh. Can they be confident they&amp;rsquo;re getting a project
+that will be around tomorrow? Another decade?&lt;/p>
+&lt;p>These are not theoretical questions. The past 18 months alone have provided many
+examples of just how fragile open source can be:&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: October 2024</title><link>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</link><pubDate>Tue, 15 Oct 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/10/15/linkerd-edge-release-roundup/</guid><description>&lt;p>Welcome to the October 2024 Edge Release Roundup post, where we dive into the
 most recent edge releases to help keep everyone up to date on the latest and
 greatest!&lt;/p>
 &lt;h2 id="how-to-give-feedback">How to give feedback&lt;/h2>
@@ -87,9 +93,4 @@ greatest! This month, we&amp;rsquo;re covering the releases from &lt;code>edge-2
 &lt;code>main&lt;/code>; by definition, they always have the most recent features but they may
 have incomplete features, features that end up getting rolled back later, or
 (gasp!) even bugs. If you&amp;rsquo;re running edge releases, it&amp;rsquo;s &lt;em>very&lt;/em> important that
-you send us feedback on how things are going for you!&lt;/p></description></item><item><title>Linkerd Edge Release Roundup: March 2024</title><link>https://travisbeckham.github.io/2024/03/12/linkerd-edge-release-roundup/</link><pubDate>Tue, 12 Mar 2024 00:00:00 +0000</pubDate><author>Flynn</author><guid>https://travisbeckham.github.io/2024/03/12/linkerd-edge-release-roundup/</guid><description>&lt;p>With the changes to Linkerd&amp;rsquo;s release model, edge releases have clearly become
-more important! In light of that, we&amp;rsquo;ll be doing these Edge Release Roundup
-posts every month, to help keep everyone up to date on the latest and greatest.
-Going forward, we&amp;rsquo;ll cover everything since the previous roundup, but for this
-first post of the new series, we&amp;rsquo;ll take a longer look back, and tackle all the
-edge releases from February to the present.&lt;/p></description></item></channel></rss>
+you send us feedback on how things are going for you!&lt;/p></description></item></channel></rss>

@@ -1,0 +1,117 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Towards a Sustainable Service Mesh | Linkerd</title>
+<link rel="shortcut icon" href=/favicon.png><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Open source covers a vast spectrum of projects, but they all face the same
+existential threat: what ensures this project will be maintained in the future?
+Today, Linkerd adopters can be confident they&rsquo;re getting the world&rsquo;s simplest,
+fastest, lightest service mesh. Can they be confident they&rsquo;re getting a project
+that will be around tomorrow? Another decade?
+These are not theoretical questions. The past 18 months alone have provided many
+examples of just how fragile open source can be:"><meta property="og:url" content="https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/"><meta property="og:site_name" content="Linkerd"><meta property="og:title" content="Towards a Sustainable Service Mesh"><meta property="og:description" content="Open source covers a vast spectrum of projects, but they all face the same existential threat: what ensures this project will be maintained in the future? Today, Linkerd adopters can be confident they’re getting the world’s simplest, fastest, lightest service mesh. Can they be confident they’re getting a project that will be around tomorrow? Another decade?
+These are not theoretical questions. The past 18 months alone have provided many examples of just how fragile open source can be:"><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="blog"><meta property="article:published_time" content="2024-10-23T00:00:00+00:00"><meta property="article:modified_time" content="2024-10-23T00:00:00+00:00"><meta property="og:image" content="https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/cover.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/cover.jpg"><meta name=twitter:title content="Towards a Sustainable Service Mesh"><meta name=twitter:description content="Open source covers a vast spectrum of projects, but they all face the same existential threat: what ensures this project will be maintained in the future? Today, Linkerd adopters can be confident they’re getting the world’s simplest, fastest, lightest service mesh. Can they be confident they’re getting a project that will be around tomorrow? Another decade?
+These are not theoretical questions. The past 18 months alone have provided many examples of just how fragile open source can be:"><meta name=twitter:site content="@Linkerd"><link rel=canonical href=https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/><link rel=stylesheet href=/css/main.css><script src=/js/main.js></script><script async defer src=https://buttons.github.io/buttons.js></script><script type=application/ld+json>{"@context":"https://schema.org","@type":"Article","author":"William Morgan","datePublished":"2024-10-23T00:00:00Z","dateModified":"2024-10-23T00:00:00Z","headline":"Towards a Sustainable Service Mesh","image":"https://travisbeckham.github.io/2024/10/23/making-linkerd-sustainable/cover.jpg","publisher":{"@type":"Organization","name":"linkerd.io","logo":{"@type":"ImageObject","url":"https://travisbeckham.github.io/logos/linkerd.png","width":472,"height":100}}}</script></head><body><header class=main-header><div class=main-header__container><div class=main-header__logo><a href=/><img src=/logos/linkerd.png alt=Linkerd></a></div><input class=main-header__toggle-checkbox type=checkbox id=main-header-toggle>
+<label class=main-header__toggle for=main-header-toggle><span class=main-header__toggle-icon><span class=main-header__toggle-icon--open><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M3 6H21V8H3V6m0 5H21v2H3V11m0 5H21v2H3V16z"/></svg>
+</span><span class=main-header__toggle-icon--close><svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></span></span></label><div class=main-header__nav><nav class=main-nav><ul class=main-nav__menu><li><a href=/docs>Docs</a></li><li><a href=#>Community<svg class="icon icon--primary" viewBox="0 0 24 24"><path d="M7.41 8.58 12 13.17l4.59-4.59L18 10l-6 6-6-6L7.41 8.58z"/></svg></a><ul><li><a href=/community/get-involved/>Get Involved</a></li><li><a href=/community/adopters/>Adopters</a></li><li><a href=/community/ambassadors/>Linkerd Ambassadors</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Buoyant's Linkerd Forum</a></li></ul></li><li class=main-nav__menu--selected><a href=/blog/>Blog</a></li><li><a href=/faq/>FAQ</a></li><li><a href=/enterprise/>Enterprise</a></li></ul><div class=main-nav__search><form action=/search method=get><div class="search-input search-input--sm"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5.0 0116 9.5c0 1.61-.59 3.09-1.56 4.23L14.71 14H15.5l5 5L19 20.5l-5-5V14.71L13.73 14.44C12.59 15.41 11.11 16 9.5 16A6.5 6.5.0 013 9.5 6.5 6.5.0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+<input type=text name=q placeholder=Search></div></form></div><div class=main-nav__github><a class=github-button href=https://github.com/linkerd/linkerd2 data-icon=octicon-star data-size=large data-show-count=true aria-label="Star linkerd/linkerd2 on GitHub">Star</a></div><div class=main-nav__forum><a href=https://linkerd.buoyant.io class="button button--primary button--sm" target=_blank rel=noopener>Join Forum</a></div></nav></div></div></header><div class=main-announcement><strong>Oct 23, 2024</strong> New blog post: Towards a Sustainable Service Mesh.
+<a href=/2024/10/23/making-linkerd-sustainable/ class=main-announcement__link>Read the post</a></div><main class=main-content><div class="blog blog--single"><div class="blog__container container"><div class=blog-post><div class=blog-post__header><h1>Towards a Sustainable Service Mesh</h1><div class=blog-post-meta><div class=blog-post-meta__media><img src=/authors/william-morgan_hu3903078524196475597.jpg alt="William Morgan" class="img img--48 img--round"></div><div class=blog-post-meta__body><div class=blog-post-meta__name>William Morgan</div><div class=blog-post-meta__date>Oct 23, 2024 • 6 min read</div></div></div></div><div class=blog-post__cover><img src=/2024/10/23/making-linkerd-sustainable/cover.jpg alt=Cover class="img img--fill img--rounded"></div><div class="blog-post__content prose"><p>Open source covers a vast spectrum of projects, but they all face the same
+existential threat: what ensures this project will be maintained in the future?
+Today, Linkerd adopters can be confident they&rsquo;re getting the world&rsquo;s simplest,
+fastest, lightest service mesh. Can they be confident they&rsquo;re getting a project
+that will be around tomorrow? Another decade?</p><p>These are not theoretical questions. The past 18 months alone have provided many
+examples of just how fragile open source can be:</p><ul><li>In February, Weaveworks, the company behind much of the Gitops movement,
+<a href=https://thenewstack.io/end-of-an-era-weaveworks-closes-shop-amid-cloud-native-turbulence/ target=_blank rel=noopener>shut its
+doors</a>,
+temporarily leaving the fate of the widely-used CNCF-graduated Flux project in
+doubt.</li><li>In March, Redis, a well-established infrastructure project, <a href=https://redis.io/blog/redis-adopts-dual-source-available-licensing/ target=_blank rel=noopener>changed its
+licenses to move away from open
+source</a>,
+following a <a href=https://www.hashicorp.com/blog/hashicorp-adopts-business-source-license target=_blank rel=noopener>similar license change by
+Terraform</a>
+a year earlier.</li><li>Last year, Open Service Mesh, a CNCF service mesh project created, maintained,
+and marketed heavily by Microsoft, <a href=https://openservicemesh.io/blog/osm-project-update/ target=_blank rel=noopener>shut down
+entirely</a>, its
+maintainers reassigned to other projects.</li></ul><p>Being a CNCF project—even a graduated one—offers no protection. The CNCF does
+not step in to rescue dying projects. Nor does the backing of a trillion-dollar
+company; nor a happy and robust community. Each project must find its own answer
+to this question.</p><p>To this end, in February <a href=https://linkerd.io/2024/02/21/announcing-linkerd-2.15/ target=_blank rel=noopener>we announced a significant change to
+Linkerd</a>. We would no
+longer publish stable release packages as part of the open source project.
+Instead, we would rely on the vendor ecosystem for that work. The change itself
+was a small simplification of the project, but the goal behind it was very
+large: <strong>to ensure Linkerd could become a truly sustainable project, without
+relicensing, without violating CNCF rules, and without changing Linkerd&rsquo;s
+fundamental open source nature.</strong></p><p>We made this change the only way we thought was truly realistic: by building a
+clear economic path from the companies that build their businesses on top of
+Linkerd, to the vendors who employ, today, 100% of the Linkerd maintainers.</p><p>Did it work?</p><h2 id=the-linkerd-community-is-amazing>The Linkerd community is amazing</h2><p>Yes. Today, we can confidently state that the future of Linkerd is very bright.
+You can read <a href=https://buoyant.io/blog/linkerd-forever target=_blank rel=noopener>Buoyant&rsquo;s full announcement
+here</a>.</p><p>We first need to start with a giant <em>thank you</em> to the Linkerd community. Since
+our announcement, we&rsquo;ve had countless conversations with adopters who understood
+the criticality of what we were trying to do and why it made sense for them; who
+told us they had our backs; who took this leap of faith with us.</p><p>Since making this change, the Linkerd team has gained both maintainers and
+momentum, achieving milestone after milestone:</p><ul><li>We&rsquo;ve shipped many features that have been languishing in the backlog,
+including support for IPv6, authorization policy audit mode, and bringing our
+Gateway API implementation to feature parity with ServiceProfiles.</li><li>We&rsquo;ve delivered a new implementation of retries, timeouts, and per-route
+metrics—some of the earliest code ever shipped in Linkerd—that fixes some
+long-standing corner case behavior in these features.</li><li>We&rsquo;ve made significant progress on both egress functionality, rate limiting,
+and Open Telemetry support, all long-awaited features to be delivered in the
+upcoming Linkerd 2.17 release.</li><li>We&rsquo;ve added a search bar to linkerd.io docs. (Sometimes it&rsquo;s the little
+things!)</li><li>We&rsquo;ve hit 10,000 community Slack members :)</li></ul><p>We&rsquo;ve also significantly improved our edge release process to make edge
+artifacts easier to consume, providing both <a href=https://github.com/linkerd/linkerd2/releases target=_blank rel=noopener>post-hoc
+guidance</a> about each release as
+well as <a href=https://linkerd.io/2024/09/06/linkerd-edge-release-roundup/ target=_blank rel=noopener>monthly
+roundups</a>. As we
+hoped, this is has dramatically increased the speed of bugfixes for
+adopter-reported issues (see e.g.
+<a href=https://github.com/linkerd/linkerd2/issues/12610 target=_blank rel=noopener>#12610</a>).</p><h2 id=linkerd-gets-more-maintainers>Linkerd gets more maintainers</h2><p>We&rsquo;re very happy to report that Buoyant is adding maintainers to Linkerd to
+further increase the pace of development.</p><p>Two new maintainers (technically, still maintainers-in-training) have already
+joined the team. They are both increasing project bandwidth where we need it
+most: in Linkerd&rsquo;s Rust microproxy, the nuclear engine behind Linkerd&rsquo;s entire
+feature set. The proxy is the key to Linkerd&rsquo;s stellar performance and
+simplicity, but it&rsquo;s also the most challenging part of the project to work on.
+Linkerd&rsquo;s microproxy is one of the most advanced Rust codebases in the world,
+and being able to operate effectively here requires an extremely high caliber of
+talent. These incredible folks will be working full time on making Linkerd&rsquo;s
+dataplane even faster, even lighter, and even more featureful.</p><p>And that&rsquo;s just the beginning.</p><h2 id=our-advice-to-other-cncf-projects>Our advice to other CNCF projects</h2><p>Shortly after our announcement, multiple CNCF maintainers reached out to us
+privately, wondering if a similar change might make sense for them.</p><p>Our answer today is &ldquo;probably&rdquo;. While open source projects can have dramatically
+different needs, constraints, and communities, many CNCF projects have a set of
+characteristics that we believe makes this type of release-artifact-focused
+change effective:</p><ul><li><strong>The project is primarily used in commercial contexts.</strong> Many CNCF projects,
+like Linkerd, have a community that is primarily there on behalf of their
+employer, on their employer&rsquo;s dime, with the goal of advancing their
+employer&rsquo;s business interests.</li><li><strong>Adopters primarily interact with the project through release packages.</strong>
+Many CNCF projects, like Linkerd, have a community that primarily interacts
+with the projects by downloading and deploying pre-built release artifacts,
+and when the project is working they move on to the next task at hand.</li><li><strong>The project is a critical part of adopters&rsquo; infrastructure.</strong> Many CNCF
+projects, like Linkerd, provide features which are critical to the business
+and cannot be easily replicated.</li></ul><p>For projects like these, providing a clear way for adopters to fund project
+development is a tremendous asset. Our change gave Linkerd&rsquo;s adopters agency in
+the project&rsquo;s long-term survival, and the ability to not just de-risk the worst
+outcome but to accelerate the best ones. These are transformative benefits.</p><p>Our experience was also that the CNCF itself was receptive to this change. We
+met with the TOC shortly after the announcement. They asked for minor
+clarifications and adjustments to our plan, but the tone of the meeting was
+supportive, and it was clear that ultimately everyone, from TOC to maintainers
+to adopters, shared the same goal: the long-term health of Linkerd.</p><h2 id=whats-next-for-linkerd>What&rsquo;s next for Linkerd?</h2><p>More, faster, better Linkerd-ing, of course! With our supercharged team, we&rsquo;re
+rapidly converging on a stellar Linkerd 2.17 release and fleshing out our long
+and very exciting roadmap beyond that. We&rsquo;ll continue to add maintainers to the
+project and to grow our adopter base the only way we know how: by solving actual
+problems for actual people. (Without causing them more problems in the
+meantime.)</p><p>A handful of Linkerd maintainers and project participants will be in attendance
+at <a href=https://buoyant.io/blog/linkerd-community-guide-to-kubecon-cloudnativecon-na-2024-in-salt-lake-city target=_blank rel=noopener>Kubecon NA in Salt Lake City this
+November</a>.
+If you&rsquo;re there, please do stop by the Linkerd booth in the project pavilion and
+say hi. All are welcome.</p><p>Needless to say, we&rsquo;ll also continue feeling very grateful for our community.
+Thank you, again, from the bottoms of our hearts. We&rsquo;d love to hear from you,
+whether about this change, your thoughts on the future of Linkerd, or any other
+mesh-y topics you&rsquo;d like to discuss.</p><p>We honestly do want your input. Linkerd is unique in the service mesh space is
+that we are a single, nimble team working off a single, unified roadmap. This
+means that the voice of the adopter is one of the strongest forces in our
+universe.</p><p>Until our next update: onwards.</p><h2 id=linkerd-is-for-everyone>Linkerd is for everyone</h2><p>Linkerd is a graduated project of the <a href=https://cncf.io/ target=_blank rel=noopener>Cloud Native Computing
+Foundation</a>. Linkerd is <a href=/2019/10/03/linkerds-commitment-to-open-governance/>committed to open
+governance.</a> If you have
+feature requests, questions, or comments, we&rsquo;d love to have you join our
+rapidly-growing community! Linkerd is hosted on
+<a href=https://github.com/linkerd/ target=_blank rel=noopener>GitHub</a>, and we have a thriving community on
+<a href=https://slack.linkerd.io/ target=_blank rel=noopener>Slack</a>, <a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a>, and
+the <a href=/community/get-involved/>mailing lists</a>. Come and join the fun!</p><h2 id=photo-credit>Photo credit</h2><p>Photo by
+<a href="https://unsplash.com/@kazuend?utm_content=creditCopyText&amp;utm_medium=referral&amp;utm_source=unsplash" target=_blank rel=noopener>kazuend</a>
+on
+<a href="https://unsplash.com/photos/worms-eye-view-of-forest-during-day-time-19SC2oaVZW0?utm_content=creditCopyText&amp;utm_medium=referral&amp;utm_source=unsplash" target=_blank rel=noopener>Unsplash</a></p></div></div><div class=blog-post-related><h2>Suggested Blog Posts</h2><div class=blog-post-related__pages><div class="card card--horz card--center"><div class=card__media><img src=/2024/10/15/linkerd-edge-release-roundup/thumbnail_hu13625965438250253136.jpg alt="Thumbnail hu13625965438250253136" class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/10/15/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: October 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Oct 15, 2024 • 4 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/09/06/linkerd-edge-release-roundup/thumbnail_hu7941277192640404604.jpg alt="Thumbnail hu7941277192640404604" class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/09/06/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: September 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Sep 6, 2024 • 3 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/13/announcing-linkerd-2.16/cover_hu10039291753733819833.jpg alt="Cover hu10039291753733819833" class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/13/announcing-linkerd-2.16/>Announcing Linkerd 2.16! Metrics, retries, and timeouts for HTTP and gRPC
+routes; IPv6 support; policy audit mode; and lots more</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 13, 2024 • 6 min read</div></div></div></div></div><div class="card card--horz card--center"><div class=card__media><img src=/2024/08/05/linkerd-edge-release-roundup/thumbnail_hu14741148691851423585.jpg alt="Thumbnail hu14741148691851423585" class="img img--128 img--rounded"></div><div class=card__body><div class=card__header><h4><a href=/2024/08/05/linkerd-edge-release-roundup/>Linkerd Edge Release Roundup: August 2024</a></h4><div class=blog-post-meta><div class=blog-post-meta__date>Aug 5, 2024 • 3 min read</div></div></div></div></div></div></div></div></div></main><footer class=main-footer><div class=main-footer__top><div class="main-footer__container container"><div class=main-footer__info><p><img src=/logos/linkerd.png alt=Linkerd></p><p>Linkerd was originally created by <a href=https://buoyant.io/ target=_blank rel=noopener>Buoyant</a></p><p>View <a href=https://github.com/linkerd/linkerd/wiki/Linkerd-code-of-conduct target=_blank rel=noopener>Code of Conduct</a></p></div><div class=main-footer__links><div class=main-footer__community><h4>Community</h4><ul><li><a href=https://github.com/linkerd/linkerd2 target=_blank rel=noopener>GitHub</a></li><li><a href=https://slack.linkerd.io target=_blank rel=noopener>Slack</a></li><li><a href=https://linkerd.buoyant.io target=_blank rel=noopener>Linkerd Forum</a></li></ul></div><div class=main-footer__follow><h4>Follow</h4><ul><li><a href=https://www.linkedin.com/company/linkerd/ target=_blank rel=noopener>Linkedin</a></li><li><a href=https://www.youtube.com/buoyantio target=_blank rel=noopener>YouTube</a></li><li><a href=https://twitter.com/linkerd target=_blank rel=noopener>Twitter</a></li></ul></div></div></div></div><div class=main-footer__bottom><div class="main-footer__container container"><p><a href=https://github.com/linkerd/website/tree/main/linkerd.io/content target=_blank rel=noopener>Edit This Site</a></p><p>Copyright © 2024 Linkerd Authors. All rights reserved.</p></div></div></footer></body></html>
